@@ -26,4 +26,4 @@ If you find a security vulnerability or any security related issues, please DO N
 
 ## License
 
-GNU Affero General Public License v3.0, see [LICENSE](LICENSE).
+Apache-2.0 License, see [LICENSE](LICENSE).
