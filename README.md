@@ -1,4 +1,4 @@
-# consul-gslb-driver
+# Consul GSLB Driver
 
 **This project is under active development and not usable yet**
 
