@@ -64,14 +64,7 @@ func main() {
 
 // Attacher implements attach/detach operations against a remote CSI driver.
 type Attacher interface {
-	// Attach given volume to given node. Returns PublishVolumeInfo. Note that
-	// "detached" is returned on error and means that the volume is for sure
-	// detached from the node. "false" means that the volume may be either
-	// detached, attaching or attached and caller should retry to get the final
-	// status.
 	Create(ctx context.Context, v string) (gslb string, detached bool, err error)
-
-	// Detach given volume from given node.
 	Delete(ctx context.Context) error
 }
 
