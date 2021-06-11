@@ -12,7 +12,6 @@ Gslb driver for Hashicorp Consul.
 * `make docker-push` push container image to registry.
 
 
-* `make build` builds Docker image locally.
 * `make run` spins up local Docker containers so you can access via web or command line.
 * `make test` runs all tests locally.
 * `make rsh` spins up a temporary container based on the built image and gives you a bash inside that container.

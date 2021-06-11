@@ -1,0 +1,20 @@
+stages:
+  - release
+
+release:
+  image: node:12-buster-slim
+  stage: release
+  before_script:
+    - apt-get update && apt-get install -y --no-install-recommends git-core ca-certificates
+    - npm install -g semantic-release @semantic-release/gitlab
+    - npm install  @semantic-release/git @semantic-release/changelog @semantic-release/gitlab  -D
+  script:
+    - semantic-release
+  retry:
+    max: 2
+    when: runner_system_failure
+  rules:
+  - if: $CI_COMMIT_REF_NAME != "master"
+    when: never
+  - if: $CI_COMMIT_MESSAGE =~ /\[release\]/
+    when: on_success
