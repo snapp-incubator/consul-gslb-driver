@@ -6,9 +6,15 @@ import (
 	"strconv"
 
 	log "github.com/sirupsen/logrus"
-	"github.com/snapp-cab/consul-gslb-driver/internal/server"
+	"github.com/snapp-cab/consul-gslb-driver/internal/servers"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
+)
+
+var (
+	endpoint     string
+	consulConfig string
+	datacenter   string
 )
 
 func newStartCmd(c *Config) *cobra.Command {
@@ -35,7 +41,11 @@ func start(c *Config) {
 	log.SetLevel(log.Level(c.Verbose))
 	log.Info("Log level: ", c.Verbose)
 	addr := net.JoinHostPort(c.Listen.IP, strconv.Itoa(c.Listen.Port))
+	endpoint = c.Listen.IP
+	d := servers.NewDriver(endpoint, datacenter)
+	d.SetupDriver()
+	d.Run()
 	_, cancel := context.WithCancel(context.Background())
-	server.RunServer(cancel, addr)
+	servers.RunServer(cancel, addr)
 
 }
