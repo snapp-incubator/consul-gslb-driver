@@ -1,4 +1,4 @@
-verbose: 3
+v: 3
 listen:
   ip: "unix://Users/my/gitlab/consul-gslb-driver/socket"
   port: 9876

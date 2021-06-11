@@ -77,9 +77,3 @@ func getCreateGSLBResponse(vol string) *gslbi.CreateGSLBResponse {
 	return resp
 
 }
-
-func NewControllerServer(d *ConsulDriver) *controllerServer {
-	return &controllerServer{
-		Driver: d,
-	}
-}

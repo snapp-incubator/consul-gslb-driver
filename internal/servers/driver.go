@@ -44,3 +44,9 @@ func (d *ConsulDriver) SetupDriver() {
 func (d *ConsulDriver) Run() {
 	RunControllerServer(d.endpoint, d.cs)
 }
+
+func NewControllerServer(d *ConsulDriver) *controllerServer {
+	return &controllerServer{
+		Driver: d,
+	}
+}
