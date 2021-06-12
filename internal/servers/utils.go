@@ -6,7 +6,7 @@ import (
 	"strings"
 
 	"github.com/kubernetes-csi/csi-lib-utils/protosanitizer"
-	gslbi "github.com/snapp-cab/consul-gslb-driver/internal/gslbi"
+	"github.com/snapp-cab/consul-gslb-driver/internal/gslbi"
 	"google.golang.org/grpc"
 	"k8s.io/klog/v2"
 )
@@ -33,9 +33,9 @@ func logGRPC(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, h
 	return resp, err
 }
 
-func RunControllerServer(endpoint string, cs gslbi.ControllerServer) {
+func RunServers(endpoint string, ids gslbi.IdentityServer, cs gslbi.ControllerServer) {
 
 	s := NewNonBlockingGRPCServer()
-	s.Start(endpoint, cs)
+	s.Start(endpoint, ids, cs)
 	s.Wait()
 }

@@ -11,6 +11,7 @@ package gslbi
 import (
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
+	wrapperspb "google.golang.org/protobuf/types/known/wrapperspb"
 	reflect "reflect"
 	sync "sync"
 )
@@ -21,6 +22,531 @@ const (
 	// Verify that runtime/protoimpl is sufficiently up-to-date.
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
+
+type PluginCapability_Service_Type int32
+
+const (
+	PluginCapability_Service_UNKNOWN PluginCapability_Service_Type = 0
+	// CONTROLLER_SERVICE indicates that the Plugin provides RPCs for
+	// the ControllerService. Plugins SHOULD provide this capability.
+	// In rare cases certain plugins MAY wish to omit the
+	// ControllerService entirely from their implementation, but such
+	// SHOULD NOT be the common case.
+	// The presence of this capability determines whether the CO will
+	// attempt to invoke the REQUIRED ControllerService RPCs, as well
+	// as specific RPCs as indicated by ControllerGetCapabilities.
+	PluginCapability_Service_CONTROLLER_SERVICE PluginCapability_Service_Type = 1
+	// VOLUME_ACCESSIBILITY_CONSTRAINTS indicates that the volumes for
+	// this plugin MAY NOT be equally accessible by all nodes in the
+	// cluster. The CO MUST use the topology information returned by
+	// CreateVolumeRequest along with the topology information
+	// returned by NodeGetInfo to ensure that a given volume is
+	// accessible from a given node when scheduling workloads.
+	PluginCapability_Service_VOLUME_ACCESSIBILITY_CONSTRAINTS PluginCapability_Service_Type = 2
+)
+
+// Enum value maps for PluginCapability_Service_Type.
+var (
+	PluginCapability_Service_Type_name = map[int32]string{
+		0: "UNKNOWN",
+		1: "CONTROLLER_SERVICE",
+		2: "VOLUME_ACCESSIBILITY_CONSTRAINTS",
+	}
+	PluginCapability_Service_Type_value = map[string]int32{
+		"UNKNOWN":                          0,
+		"CONTROLLER_SERVICE":               1,
+		"VOLUME_ACCESSIBILITY_CONSTRAINTS": 2,
+	}
+)
+
+func (x PluginCapability_Service_Type) Enum() *PluginCapability_Service_Type {
+	p := new(PluginCapability_Service_Type)
+	*p = x
+	return p
+}
+
+func (x PluginCapability_Service_Type) String() string {
+	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
+}
+
+func (PluginCapability_Service_Type) Descriptor() protoreflect.EnumDescriptor {
+	return file_gslbi_gslbi_proto_enumTypes[0].Descriptor()
+}
+
+func (PluginCapability_Service_Type) Type() protoreflect.EnumType {
+	return &file_gslbi_gslbi_proto_enumTypes[0]
+}
+
+func (x PluginCapability_Service_Type) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
+// Deprecated: Use PluginCapability_Service_Type.Descriptor instead.
+func (PluginCapability_Service_Type) EnumDescriptor() ([]byte, []int) {
+	return file_gslbi_gslbi_proto_rawDescGZIP(), []int{4, 0, 0}
+}
+
+type PluginCapability_VolumeExpansion_Type int32
+
+const (
+	PluginCapability_VolumeExpansion_UNKNOWN PluginCapability_VolumeExpansion_Type = 0
+	// ONLINE indicates that volumes may be expanded when published to
+	// a node. When a Plugin implements this capability it MUST
+	// implement either the EXPAND_VOLUME controller capability or the
+	// EXPAND_VOLUME node capability or both. When a plugin supports
+	// ONLINE volume expansion and also has the EXPAND_VOLUME
+	// controller capability then the plugin MUST support expansion of
+	// volumes currently published and available on a node. When a
+	// plugin supports ONLINE volume expansion and also has the
+	// EXPAND_VOLUME node capability then the plugin MAY support
+	// expansion of node-published volume via NodeExpandVolume.
+	//
+	// Example 1: Given a shared filesystem volume (e.g. GlusterFs),
+	//   the Plugin may set the ONLINE volume expansion capability and
+	//   implement ControllerExpandVolume but not NodeExpandVolume.
+	//
+	// Example 2: Given a block storage volume type (e.g. EBS), the
+	//   Plugin may set the ONLINE volume expansion capability and
+	//   implement both ControllerExpandVolume and NodeExpandVolume.
+	//
+	// Example 3: Given a Plugin that supports volume expansion only
+	//   upon a node, the Plugin may set the ONLINE volume
+	//   expansion capability and implement NodeExpandVolume but not
+	//   ControllerExpandVolume.
+	PluginCapability_VolumeExpansion_ONLINE PluginCapability_VolumeExpansion_Type = 1
+	// OFFLINE indicates that volumes currently published and
+	// available on a node SHALL NOT be expanded via
+	// ControllerExpandVolume. When a plugin supports OFFLINE volume
+	// expansion it MUST implement either the EXPAND_VOLUME controller
+	// capability or both the EXPAND_VOLUME controller capability and
+	// the EXPAND_VOLUME node capability.
+	//
+	// Example 1: Given a block storage volume type (e.g. Azure Disk)
+	//   that does not support expansion of "node-attached" (i.e.
+	//   controller-published) volumes, the Plugin may indicate
+	//   OFFLINE volume expansion support and implement both
+	//   ControllerExpandVolume and NodeExpandVolume.
+	PluginCapability_VolumeExpansion_OFFLINE PluginCapability_VolumeExpansion_Type = 2
+)
+
+// Enum value maps for PluginCapability_VolumeExpansion_Type.
+var (
+	PluginCapability_VolumeExpansion_Type_name = map[int32]string{
+		0: "UNKNOWN",
+		1: "ONLINE",
+		2: "OFFLINE",
+	}
+	PluginCapability_VolumeExpansion_Type_value = map[string]int32{
+		"UNKNOWN": 0,
+		"ONLINE":  1,
+		"OFFLINE": 2,
+	}
+)
+
+func (x PluginCapability_VolumeExpansion_Type) Enum() *PluginCapability_VolumeExpansion_Type {
+	p := new(PluginCapability_VolumeExpansion_Type)
+	*p = x
+	return p
+}
+
+func (x PluginCapability_VolumeExpansion_Type) String() string {
+	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
+}
+
+func (PluginCapability_VolumeExpansion_Type) Descriptor() protoreflect.EnumDescriptor {
+	return file_gslbi_gslbi_proto_enumTypes[1].Descriptor()
+}
+
+func (PluginCapability_VolumeExpansion_Type) Type() protoreflect.EnumType {
+	return &file_gslbi_gslbi_proto_enumTypes[1]
+}
+
+func (x PluginCapability_VolumeExpansion_Type) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
+// Deprecated: Use PluginCapability_VolumeExpansion_Type.Descriptor instead.
+func (PluginCapability_VolumeExpansion_Type) EnumDescriptor() ([]byte, []int) {
+	return file_gslbi_gslbi_proto_rawDescGZIP(), []int{4, 1, 0}
+}
+
+type GetPluginInfoRequest struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+}
+
+func (x *GetPluginInfoRequest) Reset() {
+	*x = GetPluginInfoRequest{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_gslbi_gslbi_proto_msgTypes[0]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *GetPluginInfoRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetPluginInfoRequest) ProtoMessage() {}
+
+func (x *GetPluginInfoRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_gslbi_gslbi_proto_msgTypes[0]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetPluginInfoRequest.ProtoReflect.Descriptor instead.
+func (*GetPluginInfoRequest) Descriptor() ([]byte, []int) {
+	return file_gslbi_gslbi_proto_rawDescGZIP(), []int{0}
+}
+
+type GetPluginInfoResponse struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	// This field is REQUIRED.
+	Name string `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
+	// This field is REQUIRED. Value of this field is opaque to the CO.
+	VendorVersion string `protobuf:"bytes,2,opt,name=vendor_version,json=vendorVersion,proto3" json:"vendor_version,omitempty"`
+	// This field is OPTIONAL. Values are opaque to the CO.
+	Manifest map[string]string `protobuf:"bytes,3,rep,name=manifest,proto3" json:"manifest,omitempty" protobuf_key:"bytes,1,opt,name=key,proto3" protobuf_val:"bytes,2,opt,name=value,proto3"`
+}
+
+func (x *GetPluginInfoResponse) Reset() {
+	*x = GetPluginInfoResponse{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_gslbi_gslbi_proto_msgTypes[1]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *GetPluginInfoResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetPluginInfoResponse) ProtoMessage() {}
+
+func (x *GetPluginInfoResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_gslbi_gslbi_proto_msgTypes[1]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetPluginInfoResponse.ProtoReflect.Descriptor instead.
+func (*GetPluginInfoResponse) Descriptor() ([]byte, []int) {
+	return file_gslbi_gslbi_proto_rawDescGZIP(), []int{1}
+}
+
+func (x *GetPluginInfoResponse) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+func (x *GetPluginInfoResponse) GetVendorVersion() string {
+	if x != nil {
+		return x.VendorVersion
+	}
+	return ""
+}
+
+func (x *GetPluginInfoResponse) GetManifest() map[string]string {
+	if x != nil {
+		return x.Manifest
+	}
+	return nil
+}
+
+type GetPluginCapabilitiesRequest struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+}
+
+func (x *GetPluginCapabilitiesRequest) Reset() {
+	*x = GetPluginCapabilitiesRequest{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_gslbi_gslbi_proto_msgTypes[2]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *GetPluginCapabilitiesRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetPluginCapabilitiesRequest) ProtoMessage() {}
+
+func (x *GetPluginCapabilitiesRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_gslbi_gslbi_proto_msgTypes[2]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetPluginCapabilitiesRequest.ProtoReflect.Descriptor instead.
+func (*GetPluginCapabilitiesRequest) Descriptor() ([]byte, []int) {
+	return file_gslbi_gslbi_proto_rawDescGZIP(), []int{2}
+}
+
+type GetPluginCapabilitiesResponse struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	// All the capabilities that the controller service supports. This
+	// field is OPTIONAL.
+	Capabilities []*PluginCapability `protobuf:"bytes,1,rep,name=capabilities,proto3" json:"capabilities,omitempty"`
+}
+
+func (x *GetPluginCapabilitiesResponse) Reset() {
+	*x = GetPluginCapabilitiesResponse{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_gslbi_gslbi_proto_msgTypes[3]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *GetPluginCapabilitiesResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetPluginCapabilitiesResponse) ProtoMessage() {}
+
+func (x *GetPluginCapabilitiesResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_gslbi_gslbi_proto_msgTypes[3]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetPluginCapabilitiesResponse.ProtoReflect.Descriptor instead.
+func (*GetPluginCapabilitiesResponse) Descriptor() ([]byte, []int) {
+	return file_gslbi_gslbi_proto_rawDescGZIP(), []int{3}
+}
+
+func (x *GetPluginCapabilitiesResponse) GetCapabilities() []*PluginCapability {
+	if x != nil {
+		return x.Capabilities
+	}
+	return nil
+}
+
+// Specifies a capability of the plugin.
+type PluginCapability struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	// Types that are assignable to Type:
+	//	*PluginCapability_Service_
+	//	*PluginCapability_VolumeExpansion_
+	Type isPluginCapability_Type `protobuf_oneof:"type"`
+}
+
+func (x *PluginCapability) Reset() {
+	*x = PluginCapability{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_gslbi_gslbi_proto_msgTypes[4]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *PluginCapability) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*PluginCapability) ProtoMessage() {}
+
+func (x *PluginCapability) ProtoReflect() protoreflect.Message {
+	mi := &file_gslbi_gslbi_proto_msgTypes[4]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use PluginCapability.ProtoReflect.Descriptor instead.
+func (*PluginCapability) Descriptor() ([]byte, []int) {
+	return file_gslbi_gslbi_proto_rawDescGZIP(), []int{4}
+}
+
+func (m *PluginCapability) GetType() isPluginCapability_Type {
+	if m != nil {
+		return m.Type
+	}
+	return nil
+}
+
+func (x *PluginCapability) GetService() *PluginCapability_Service {
+	if x, ok := x.GetType().(*PluginCapability_Service_); ok {
+		return x.Service
+	}
+	return nil
+}
+
+func (x *PluginCapability) GetVolumeExpansion() *PluginCapability_VolumeExpansion {
+	if x, ok := x.GetType().(*PluginCapability_VolumeExpansion_); ok {
+		return x.VolumeExpansion
+	}
+	return nil
+}
+
+type isPluginCapability_Type interface {
+	isPluginCapability_Type()
+}
+
+type PluginCapability_Service_ struct {
+	// Service that the plugin supports.
+	Service *PluginCapability_Service `protobuf:"bytes,1,opt,name=service,proto3,oneof"`
+}
+
+type PluginCapability_VolumeExpansion_ struct {
+	VolumeExpansion *PluginCapability_VolumeExpansion `protobuf:"bytes,2,opt,name=volume_expansion,json=volumeExpansion,proto3,oneof"`
+}
+
+func (*PluginCapability_Service_) isPluginCapability_Type() {}
+
+func (*PluginCapability_VolumeExpansion_) isPluginCapability_Type() {}
+
+type ProbeRequest struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+}
+
+func (x *ProbeRequest) Reset() {
+	*x = ProbeRequest{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_gslbi_gslbi_proto_msgTypes[5]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *ProbeRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ProbeRequest) ProtoMessage() {}
+
+func (x *ProbeRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_gslbi_gslbi_proto_msgTypes[5]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ProbeRequest.ProtoReflect.Descriptor instead.
+func (*ProbeRequest) Descriptor() ([]byte, []int) {
+	return file_gslbi_gslbi_proto_rawDescGZIP(), []int{5}
+}
+
+type ProbeResponse struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	// Readiness allows a plugin to report its initialization status back
+	// to the CO. Initialization for some plugins MAY be time consuming
+	// and it is important for a CO to distinguish between the following
+	// cases:
+	//
+	// 1) The plugin is in an unhealthy state and MAY need restarting. In
+	//    this case a gRPC error code SHALL be returned.
+	// 2) The plugin is still initializing, but is otherwise perfectly
+	//    healthy. In this case a successful response SHALL be returned
+	//    with a readiness value of `false`. Calls to the plugin's
+	//    Controller and/or Node services MAY fail due to an incomplete
+	//    initialization state.
+	// 3) The plugin has finished initializing and is ready to service
+	//    calls to its Controller and/or Node services. A successful
+	//    response is returned with a readiness value of `true`.
+	//
+	// This field is OPTIONAL. If not present, the caller SHALL assume
+	// that the plugin is in a ready state and is accepting calls to its
+	// Controller and/or Node services (according to the plugin's reported
+	// capabilities).
+	Ready *wrapperspb.BoolValue `protobuf:"bytes,1,opt,name=ready,proto3" json:"ready,omitempty"`
+}
+
+func (x *ProbeResponse) Reset() {
+	*x = ProbeResponse{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_gslbi_gslbi_proto_msgTypes[6]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *ProbeResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ProbeResponse) ProtoMessage() {}
+
+func (x *ProbeResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_gslbi_gslbi_proto_msgTypes[6]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ProbeResponse.ProtoReflect.Descriptor instead.
+func (*ProbeResponse) Descriptor() ([]byte, []int) {
+	return file_gslbi_gslbi_proto_rawDescGZIP(), []int{6}
+}
+
+func (x *ProbeResponse) GetReady() *wrapperspb.BoolValue {
+	if x != nil {
+		return x.Ready
+	}
+	return nil
+}
 
 type CreateGSLBRequest struct {
 	state         protoimpl.MessageState
@@ -35,7 +561,7 @@ type CreateGSLBRequest struct {
 func (x *CreateGSLBRequest) Reset() {
 	*x = CreateGSLBRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_gslbi_gslbi_proto_msgTypes[0]
+		mi := &file_gslbi_gslbi_proto_msgTypes[7]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -48,7 +574,7 @@ func (x *CreateGSLBRequest) String() string {
 func (*CreateGSLBRequest) ProtoMessage() {}
 
 func (x *CreateGSLBRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_gslbi_gslbi_proto_msgTypes[0]
+	mi := &file_gslbi_gslbi_proto_msgTypes[7]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -61,7 +587,7 @@ func (x *CreateGSLBRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateGSLBRequest.ProtoReflect.Descriptor instead.
 func (*CreateGSLBRequest) Descriptor() ([]byte, []int) {
-	return file_gslbi_gslbi_proto_rawDescGZIP(), []int{0}
+	return file_gslbi_gslbi_proto_rawDescGZIP(), []int{7}
 }
 
 func (x *CreateGSLBRequest) GetName() string {
@@ -84,7 +610,7 @@ type CreateGSLBResponse struct {
 func (x *CreateGSLBResponse) Reset() {
 	*x = CreateGSLBResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_gslbi_gslbi_proto_msgTypes[1]
+		mi := &file_gslbi_gslbi_proto_msgTypes[8]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -97,7 +623,7 @@ func (x *CreateGSLBResponse) String() string {
 func (*CreateGSLBResponse) ProtoMessage() {}
 
 func (x *CreateGSLBResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_gslbi_gslbi_proto_msgTypes[1]
+	mi := &file_gslbi_gslbi_proto_msgTypes[8]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -110,7 +636,7 @@ func (x *CreateGSLBResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateGSLBResponse.ProtoReflect.Descriptor instead.
 func (*CreateGSLBResponse) Descriptor() ([]byte, []int) {
-	return file_gslbi_gslbi_proto_rawDescGZIP(), []int{1}
+	return file_gslbi_gslbi_proto_rawDescGZIP(), []int{8}
 }
 
 func (x *CreateGSLBResponse) GetGSLB() string {
@@ -133,7 +659,7 @@ type DeleteGSLBRequest struct {
 func (x *DeleteGSLBRequest) Reset() {
 	*x = DeleteGSLBRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_gslbi_gslbi_proto_msgTypes[2]
+		mi := &file_gslbi_gslbi_proto_msgTypes[9]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -146,7 +672,7 @@ func (x *DeleteGSLBRequest) String() string {
 func (*DeleteGSLBRequest) ProtoMessage() {}
 
 func (x *DeleteGSLBRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_gslbi_gslbi_proto_msgTypes[2]
+	mi := &file_gslbi_gslbi_proto_msgTypes[9]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -159,7 +685,7 @@ func (x *DeleteGSLBRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeleteGSLBRequest.ProtoReflect.Descriptor instead.
 func (*DeleteGSLBRequest) Descriptor() ([]byte, []int) {
-	return file_gslbi_gslbi_proto_rawDescGZIP(), []int{2}
+	return file_gslbi_gslbi_proto_rawDescGZIP(), []int{9}
 }
 
 func (x *DeleteGSLBRequest) GetServiceID() string {
@@ -181,7 +707,7 @@ type DeleteGSLBResponse struct {
 func (x *DeleteGSLBResponse) Reset() {
 	*x = DeleteGSLBResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_gslbi_gslbi_proto_msgTypes[3]
+		mi := &file_gslbi_gslbi_proto_msgTypes[10]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -194,7 +720,7 @@ func (x *DeleteGSLBResponse) String() string {
 func (*DeleteGSLBResponse) ProtoMessage() {}
 
 func (x *DeleteGSLBResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_gslbi_gslbi_proto_msgTypes[3]
+	mi := &file_gslbi_gslbi_proto_msgTypes[10]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -207,7 +733,7 @@ func (x *DeleteGSLBResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeleteGSLBResponse.ProtoReflect.Descriptor instead.
 func (*DeleteGSLBResponse) Descriptor() ([]byte, []int) {
-	return file_gslbi_gslbi_proto_rawDescGZIP(), []int{3}
+	return file_gslbi_gslbi_proto_rawDescGZIP(), []int{10}
 }
 
 func (x *DeleteGSLBResponse) GetName() string {
@@ -230,7 +756,7 @@ type ControllerGetGSLBRequest struct {
 func (x *ControllerGetGSLBRequest) Reset() {
 	*x = ControllerGetGSLBRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_gslbi_gslbi_proto_msgTypes[4]
+		mi := &file_gslbi_gslbi_proto_msgTypes[11]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -243,7 +769,7 @@ func (x *ControllerGetGSLBRequest) String() string {
 func (*ControllerGetGSLBRequest) ProtoMessage() {}
 
 func (x *ControllerGetGSLBRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_gslbi_gslbi_proto_msgTypes[4]
+	mi := &file_gslbi_gslbi_proto_msgTypes[11]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -256,7 +782,7 @@ func (x *ControllerGetGSLBRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ControllerGetGSLBRequest.ProtoReflect.Descriptor instead.
 func (*ControllerGetGSLBRequest) Descriptor() ([]byte, []int) {
-	return file_gslbi_gslbi_proto_rawDescGZIP(), []int{4}
+	return file_gslbi_gslbi_proto_rawDescGZIP(), []int{11}
 }
 
 func (x *ControllerGetGSLBRequest) GetGSLBId() string {
@@ -278,7 +804,7 @@ type ControllerGetGSLBResponse struct {
 func (x *ControllerGetGSLBResponse) Reset() {
 	*x = ControllerGetGSLBResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_gslbi_gslbi_proto_msgTypes[5]
+		mi := &file_gslbi_gslbi_proto_msgTypes[12]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -291,7 +817,7 @@ func (x *ControllerGetGSLBResponse) String() string {
 func (*ControllerGetGSLBResponse) ProtoMessage() {}
 
 func (x *ControllerGetGSLBResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_gslbi_gslbi_proto_msgTypes[5]
+	mi := &file_gslbi_gslbi_proto_msgTypes[12]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -304,7 +830,7 @@ func (x *ControllerGetGSLBResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ControllerGetGSLBResponse.ProtoReflect.Descriptor instead.
 func (*ControllerGetGSLBResponse) Descriptor() ([]byte, []int) {
-	return file_gslbi_gslbi_proto_rawDescGZIP(), []int{5}
+	return file_gslbi_gslbi_proto_rawDescGZIP(), []int{12}
 }
 
 func (x *ControllerGetGSLBResponse) GetGSLB() string {
@@ -314,49 +840,220 @@ func (x *ControllerGetGSLBResponse) GetGSLB() string {
 	return ""
 }
 
+type PluginCapability_Service struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	Type PluginCapability_Service_Type `protobuf:"varint,1,opt,name=type,proto3,enum=gslbi.v1.PluginCapability_Service_Type" json:"type,omitempty"`
+}
+
+func (x *PluginCapability_Service) Reset() {
+	*x = PluginCapability_Service{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_gslbi_gslbi_proto_msgTypes[14]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *PluginCapability_Service) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*PluginCapability_Service) ProtoMessage() {}
+
+func (x *PluginCapability_Service) ProtoReflect() protoreflect.Message {
+	mi := &file_gslbi_gslbi_proto_msgTypes[14]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use PluginCapability_Service.ProtoReflect.Descriptor instead.
+func (*PluginCapability_Service) Descriptor() ([]byte, []int) {
+	return file_gslbi_gslbi_proto_rawDescGZIP(), []int{4, 0}
+}
+
+func (x *PluginCapability_Service) GetType() PluginCapability_Service_Type {
+	if x != nil {
+		return x.Type
+	}
+	return PluginCapability_Service_UNKNOWN
+}
+
+type PluginCapability_VolumeExpansion struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	Type PluginCapability_VolumeExpansion_Type `protobuf:"varint,1,opt,name=type,proto3,enum=gslbi.v1.PluginCapability_VolumeExpansion_Type" json:"type,omitempty"`
+}
+
+func (x *PluginCapability_VolumeExpansion) Reset() {
+	*x = PluginCapability_VolumeExpansion{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_gslbi_gslbi_proto_msgTypes[15]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *PluginCapability_VolumeExpansion) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*PluginCapability_VolumeExpansion) ProtoMessage() {}
+
+func (x *PluginCapability_VolumeExpansion) ProtoReflect() protoreflect.Message {
+	mi := &file_gslbi_gslbi_proto_msgTypes[15]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use PluginCapability_VolumeExpansion.ProtoReflect.Descriptor instead.
+func (*PluginCapability_VolumeExpansion) Descriptor() ([]byte, []int) {
+	return file_gslbi_gslbi_proto_rawDescGZIP(), []int{4, 1}
+}
+
+func (x *PluginCapability_VolumeExpansion) GetType() PluginCapability_VolumeExpansion_Type {
+	if x != nil {
+		return x.Type
+	}
+	return PluginCapability_VolumeExpansion_UNKNOWN
+}
+
 var File_gslbi_gslbi_proto protoreflect.FileDescriptor
 
 var file_gslbi_gslbi_proto_rawDesc = []byte{
 	0x0a, 0x11, 0x67, 0x73, 0x6c, 0x62, 0x69, 0x2f, 0x67, 0x73, 0x6c, 0x62, 0x69, 0x2e, 0x70, 0x72,
-	0x6f, 0x74, 0x6f, 0x12, 0x08, 0x67, 0x73, 0x6c, 0x62, 0x69, 0x2e, 0x76, 0x31, 0x22, 0x27, 0x0a,
-	0x11, 0x43, 0x72, 0x65, 0x61, 0x74, 0x65, 0x47, 0x53, 0x4c, 0x42, 0x52, 0x65, 0x71, 0x75, 0x65,
-	0x73, 0x74, 0x12, 0x12, 0x0a, 0x04, 0x6e, 0x61, 0x6d, 0x65, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09,
-	0x52, 0x04, 0x6e, 0x61, 0x6d, 0x65, 0x22, 0x28, 0x0a, 0x12, 0x43, 0x72, 0x65, 0x61, 0x74, 0x65,
-	0x47, 0x53, 0x4c, 0x42, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12, 0x12, 0x0a, 0x04,
-	0x47, 0x53, 0x4c, 0x42, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x04, 0x47, 0x53, 0x4c, 0x42,
-	0x22, 0x31, 0x0a, 0x11, 0x44, 0x65, 0x6c, 0x65, 0x74, 0x65, 0x47, 0x53, 0x4c, 0x42, 0x52, 0x65,
-	0x71, 0x75, 0x65, 0x73, 0x74, 0x12, 0x1c, 0x0a, 0x09, 0x73, 0x65, 0x72, 0x76, 0x69, 0x63, 0x65,
-	0x49, 0x44, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x09, 0x73, 0x65, 0x72, 0x76, 0x69, 0x63,
-	0x65, 0x49, 0x44, 0x22, 0x28, 0x0a, 0x12, 0x44, 0x65, 0x6c, 0x65, 0x74, 0x65, 0x47, 0x53, 0x4c,
-	0x42, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12, 0x12, 0x0a, 0x04, 0x4e, 0x61, 0x6d,
-	0x65, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x04, 0x4e, 0x61, 0x6d, 0x65, 0x22, 0x33, 0x0a,
-	0x18, 0x43, 0x6f, 0x6e, 0x74, 0x72, 0x6f, 0x6c, 0x6c, 0x65, 0x72, 0x47, 0x65, 0x74, 0x47, 0x53,
-	0x4c, 0x42, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x12, 0x17, 0x0a, 0x07, 0x47, 0x53, 0x4c,
-	0x42, 0x5f, 0x69, 0x64, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x06, 0x47, 0x53, 0x4c, 0x42,
-	0x49, 0x64, 0x22, 0x2f, 0x0a, 0x19, 0x43, 0x6f, 0x6e, 0x74, 0x72, 0x6f, 0x6c, 0x6c, 0x65, 0x72,
-	0x47, 0x65, 0x74, 0x47, 0x53, 0x4c, 0x42, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12,
-	0x12, 0x0a, 0x04, 0x47, 0x53, 0x4c, 0x42, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x04, 0x47,
-	0x53, 0x4c, 0x42, 0x32, 0x82, 0x02, 0x0a, 0x0a, 0x43, 0x6f, 0x6e, 0x74, 0x72, 0x6f, 0x6c, 0x6c,
-	0x65, 0x72, 0x12, 0x49, 0x0a, 0x0a, 0x43, 0x72, 0x65, 0x61, 0x74, 0x65, 0x47, 0x53, 0x4c, 0x42,
-	0x12, 0x1b, 0x2e, 0x67, 0x73, 0x6c, 0x62, 0x69, 0x2e, 0x76, 0x31, 0x2e, 0x43, 0x72, 0x65, 0x61,
-	0x74, 0x65, 0x47, 0x53, 0x4c, 0x42, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x1c, 0x2e,
-	0x67, 0x73, 0x6c, 0x62, 0x69, 0x2e, 0x76, 0x31, 0x2e, 0x43, 0x72, 0x65, 0x61, 0x74, 0x65, 0x47,
-	0x53, 0x4c, 0x42, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x00, 0x12, 0x49, 0x0a,
-	0x0a, 0x44, 0x65, 0x6c, 0x65, 0x74, 0x65, 0x47, 0x53, 0x4c, 0x42, 0x12, 0x1b, 0x2e, 0x67, 0x73,
-	0x6c, 0x62, 0x69, 0x2e, 0x76, 0x31, 0x2e, 0x44, 0x65, 0x6c, 0x65, 0x74, 0x65, 0x47, 0x53, 0x4c,
+	0x6f, 0x74, 0x6f, 0x12, 0x08, 0x67, 0x73, 0x6c, 0x62, 0x69, 0x2e, 0x76, 0x31, 0x1a, 0x1e, 0x67,
+	0x6f, 0x6f, 0x67, 0x6c, 0x65, 0x2f, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x62, 0x75, 0x66, 0x2f, 0x77,
+	0x72, 0x61, 0x70, 0x70, 0x65, 0x72, 0x73, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x22, 0x16, 0x0a,
+	0x14, 0x47, 0x65, 0x74, 0x50, 0x6c, 0x75, 0x67, 0x69, 0x6e, 0x49, 0x6e, 0x66, 0x6f, 0x52, 0x65,
+	0x71, 0x75, 0x65, 0x73, 0x74, 0x22, 0xda, 0x01, 0x0a, 0x15, 0x47, 0x65, 0x74, 0x50, 0x6c, 0x75,
+	0x67, 0x69, 0x6e, 0x49, 0x6e, 0x66, 0x6f, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12,
+	0x12, 0x0a, 0x04, 0x6e, 0x61, 0x6d, 0x65, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x04, 0x6e,
+	0x61, 0x6d, 0x65, 0x12, 0x25, 0x0a, 0x0e, 0x76, 0x65, 0x6e, 0x64, 0x6f, 0x72, 0x5f, 0x76, 0x65,
+	0x72, 0x73, 0x69, 0x6f, 0x6e, 0x18, 0x02, 0x20, 0x01, 0x28, 0x09, 0x52, 0x0d, 0x76, 0x65, 0x6e,
+	0x64, 0x6f, 0x72, 0x56, 0x65, 0x72, 0x73, 0x69, 0x6f, 0x6e, 0x12, 0x49, 0x0a, 0x08, 0x6d, 0x61,
+	0x6e, 0x69, 0x66, 0x65, 0x73, 0x74, 0x18, 0x03, 0x20, 0x03, 0x28, 0x0b, 0x32, 0x2d, 0x2e, 0x67,
+	0x73, 0x6c, 0x62, 0x69, 0x2e, 0x76, 0x31, 0x2e, 0x47, 0x65, 0x74, 0x50, 0x6c, 0x75, 0x67, 0x69,
+	0x6e, 0x49, 0x6e, 0x66, 0x6f, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x2e, 0x4d, 0x61,
+	0x6e, 0x69, 0x66, 0x65, 0x73, 0x74, 0x45, 0x6e, 0x74, 0x72, 0x79, 0x52, 0x08, 0x6d, 0x61, 0x6e,
+	0x69, 0x66, 0x65, 0x73, 0x74, 0x1a, 0x3b, 0x0a, 0x0d, 0x4d, 0x61, 0x6e, 0x69, 0x66, 0x65, 0x73,
+	0x74, 0x45, 0x6e, 0x74, 0x72, 0x79, 0x12, 0x10, 0x0a, 0x03, 0x6b, 0x65, 0x79, 0x18, 0x01, 0x20,
+	0x01, 0x28, 0x09, 0x52, 0x03, 0x6b, 0x65, 0x79, 0x12, 0x14, 0x0a, 0x05, 0x76, 0x61, 0x6c, 0x75,
+	0x65, 0x18, 0x02, 0x20, 0x01, 0x28, 0x09, 0x52, 0x05, 0x76, 0x61, 0x6c, 0x75, 0x65, 0x3a, 0x02,
+	0x38, 0x01, 0x22, 0x1e, 0x0a, 0x1c, 0x47, 0x65, 0x74, 0x50, 0x6c, 0x75, 0x67, 0x69, 0x6e, 0x43,
+	0x61, 0x70, 0x61, 0x62, 0x69, 0x6c, 0x69, 0x74, 0x69, 0x65, 0x73, 0x52, 0x65, 0x71, 0x75, 0x65,
+	0x73, 0x74, 0x22, 0x5f, 0x0a, 0x1d, 0x47, 0x65, 0x74, 0x50, 0x6c, 0x75, 0x67, 0x69, 0x6e, 0x43,
+	0x61, 0x70, 0x61, 0x62, 0x69, 0x6c, 0x69, 0x74, 0x69, 0x65, 0x73, 0x52, 0x65, 0x73, 0x70, 0x6f,
+	0x6e, 0x73, 0x65, 0x12, 0x3e, 0x0a, 0x0c, 0x63, 0x61, 0x70, 0x61, 0x62, 0x69, 0x6c, 0x69, 0x74,
+	0x69, 0x65, 0x73, 0x18, 0x01, 0x20, 0x03, 0x28, 0x0b, 0x32, 0x1a, 0x2e, 0x67, 0x73, 0x6c, 0x62,
+	0x69, 0x2e, 0x76, 0x31, 0x2e, 0x50, 0x6c, 0x75, 0x67, 0x69, 0x6e, 0x43, 0x61, 0x70, 0x61, 0x62,
+	0x69, 0x6c, 0x69, 0x74, 0x79, 0x52, 0x0c, 0x63, 0x61, 0x70, 0x61, 0x62, 0x69, 0x6c, 0x69, 0x74,
+	0x69, 0x65, 0x73, 0x22, 0xd6, 0x03, 0x0a, 0x10, 0x50, 0x6c, 0x75, 0x67, 0x69, 0x6e, 0x43, 0x61,
+	0x70, 0x61, 0x62, 0x69, 0x6c, 0x69, 0x74, 0x79, 0x12, 0x3e, 0x0a, 0x07, 0x73, 0x65, 0x72, 0x76,
+	0x69, 0x63, 0x65, 0x18, 0x01, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x22, 0x2e, 0x67, 0x73, 0x6c, 0x62,
+	0x69, 0x2e, 0x76, 0x31, 0x2e, 0x50, 0x6c, 0x75, 0x67, 0x69, 0x6e, 0x43, 0x61, 0x70, 0x61, 0x62,
+	0x69, 0x6c, 0x69, 0x74, 0x79, 0x2e, 0x53, 0x65, 0x72, 0x76, 0x69, 0x63, 0x65, 0x48, 0x00, 0x52,
+	0x07, 0x73, 0x65, 0x72, 0x76, 0x69, 0x63, 0x65, 0x12, 0x57, 0x0a, 0x10, 0x76, 0x6f, 0x6c, 0x75,
+	0x6d, 0x65, 0x5f, 0x65, 0x78, 0x70, 0x61, 0x6e, 0x73, 0x69, 0x6f, 0x6e, 0x18, 0x02, 0x20, 0x01,
+	0x28, 0x0b, 0x32, 0x2a, 0x2e, 0x67, 0x73, 0x6c, 0x62, 0x69, 0x2e, 0x76, 0x31, 0x2e, 0x50, 0x6c,
+	0x75, 0x67, 0x69, 0x6e, 0x43, 0x61, 0x70, 0x61, 0x62, 0x69, 0x6c, 0x69, 0x74, 0x79, 0x2e, 0x56,
+	0x6f, 0x6c, 0x75, 0x6d, 0x65, 0x45, 0x78, 0x70, 0x61, 0x6e, 0x73, 0x69, 0x6f, 0x6e, 0x48, 0x00,
+	0x52, 0x0f, 0x76, 0x6f, 0x6c, 0x75, 0x6d, 0x65, 0x45, 0x78, 0x70, 0x61, 0x6e, 0x73, 0x69, 0x6f,
+	0x6e, 0x1a, 0x99, 0x01, 0x0a, 0x07, 0x53, 0x65, 0x72, 0x76, 0x69, 0x63, 0x65, 0x12, 0x3b, 0x0a,
+	0x04, 0x74, 0x79, 0x70, 0x65, 0x18, 0x01, 0x20, 0x01, 0x28, 0x0e, 0x32, 0x27, 0x2e, 0x67, 0x73,
+	0x6c, 0x62, 0x69, 0x2e, 0x76, 0x31, 0x2e, 0x50, 0x6c, 0x75, 0x67, 0x69, 0x6e, 0x43, 0x61, 0x70,
+	0x61, 0x62, 0x69, 0x6c, 0x69, 0x74, 0x79, 0x2e, 0x53, 0x65, 0x72, 0x76, 0x69, 0x63, 0x65, 0x2e,
+	0x54, 0x79, 0x70, 0x65, 0x52, 0x04, 0x74, 0x79, 0x70, 0x65, 0x22, 0x51, 0x0a, 0x04, 0x54, 0x79,
+	0x70, 0x65, 0x12, 0x0b, 0x0a, 0x07, 0x55, 0x4e, 0x4b, 0x4e, 0x4f, 0x57, 0x4e, 0x10, 0x00, 0x12,
+	0x16, 0x0a, 0x12, 0x43, 0x4f, 0x4e, 0x54, 0x52, 0x4f, 0x4c, 0x4c, 0x45, 0x52, 0x5f, 0x53, 0x45,
+	0x52, 0x56, 0x49, 0x43, 0x45, 0x10, 0x01, 0x12, 0x24, 0x0a, 0x20, 0x56, 0x4f, 0x4c, 0x55, 0x4d,
+	0x45, 0x5f, 0x41, 0x43, 0x43, 0x45, 0x53, 0x53, 0x49, 0x42, 0x49, 0x4c, 0x49, 0x54, 0x59, 0x5f,
+	0x43, 0x4f, 0x4e, 0x53, 0x54, 0x52, 0x41, 0x49, 0x4e, 0x54, 0x53, 0x10, 0x02, 0x1a, 0x84, 0x01,
+	0x0a, 0x0f, 0x56, 0x6f, 0x6c, 0x75, 0x6d, 0x65, 0x45, 0x78, 0x70, 0x61, 0x6e, 0x73, 0x69, 0x6f,
+	0x6e, 0x12, 0x43, 0x0a, 0x04, 0x74, 0x79, 0x70, 0x65, 0x18, 0x01, 0x20, 0x01, 0x28, 0x0e, 0x32,
+	0x2f, 0x2e, 0x67, 0x73, 0x6c, 0x62, 0x69, 0x2e, 0x76, 0x31, 0x2e, 0x50, 0x6c, 0x75, 0x67, 0x69,
+	0x6e, 0x43, 0x61, 0x70, 0x61, 0x62, 0x69, 0x6c, 0x69, 0x74, 0x79, 0x2e, 0x56, 0x6f, 0x6c, 0x75,
+	0x6d, 0x65, 0x45, 0x78, 0x70, 0x61, 0x6e, 0x73, 0x69, 0x6f, 0x6e, 0x2e, 0x54, 0x79, 0x70, 0x65,
+	0x52, 0x04, 0x74, 0x79, 0x70, 0x65, 0x22, 0x2c, 0x0a, 0x04, 0x54, 0x79, 0x70, 0x65, 0x12, 0x0b,
+	0x0a, 0x07, 0x55, 0x4e, 0x4b, 0x4e, 0x4f, 0x57, 0x4e, 0x10, 0x00, 0x12, 0x0a, 0x0a, 0x06, 0x4f,
+	0x4e, 0x4c, 0x49, 0x4e, 0x45, 0x10, 0x01, 0x12, 0x0b, 0x0a, 0x07, 0x4f, 0x46, 0x46, 0x4c, 0x49,
+	0x4e, 0x45, 0x10, 0x02, 0x42, 0x06, 0x0a, 0x04, 0x74, 0x79, 0x70, 0x65, 0x22, 0x0e, 0x0a, 0x0c,
+	0x50, 0x72, 0x6f, 0x62, 0x65, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x22, 0x41, 0x0a, 0x0d,
+	0x50, 0x72, 0x6f, 0x62, 0x65, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12, 0x30, 0x0a,
+	0x05, 0x72, 0x65, 0x61, 0x64, 0x79, 0x18, 0x01, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x1a, 0x2e, 0x67,
+	0x6f, 0x6f, 0x67, 0x6c, 0x65, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x62, 0x75, 0x66, 0x2e, 0x42,
+	0x6f, 0x6f, 0x6c, 0x56, 0x61, 0x6c, 0x75, 0x65, 0x52, 0x05, 0x72, 0x65, 0x61, 0x64, 0x79, 0x22,
+	0x27, 0x0a, 0x11, 0x43, 0x72, 0x65, 0x61, 0x74, 0x65, 0x47, 0x53, 0x4c, 0x42, 0x52, 0x65, 0x71,
+	0x75, 0x65, 0x73, 0x74, 0x12, 0x12, 0x0a, 0x04, 0x6e, 0x61, 0x6d, 0x65, 0x18, 0x01, 0x20, 0x01,
+	0x28, 0x09, 0x52, 0x04, 0x6e, 0x61, 0x6d, 0x65, 0x22, 0x28, 0x0a, 0x12, 0x43, 0x72, 0x65, 0x61,
+	0x74, 0x65, 0x47, 0x53, 0x4c, 0x42, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12, 0x12,
+	0x0a, 0x04, 0x47, 0x53, 0x4c, 0x42, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x04, 0x47, 0x53,
+	0x4c, 0x42, 0x22, 0x31, 0x0a, 0x11, 0x44, 0x65, 0x6c, 0x65, 0x74, 0x65, 0x47, 0x53, 0x4c, 0x42,
+	0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x12, 0x1c, 0x0a, 0x09, 0x73, 0x65, 0x72, 0x76, 0x69,
+	0x63, 0x65, 0x49, 0x44, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x09, 0x73, 0x65, 0x72, 0x76,
+	0x69, 0x63, 0x65, 0x49, 0x44, 0x22, 0x28, 0x0a, 0x12, 0x44, 0x65, 0x6c, 0x65, 0x74, 0x65, 0x47,
+	0x53, 0x4c, 0x42, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12, 0x12, 0x0a, 0x04, 0x4e,
+	0x61, 0x6d, 0x65, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x04, 0x4e, 0x61, 0x6d, 0x65, 0x22,
+	0x33, 0x0a, 0x18, 0x43, 0x6f, 0x6e, 0x74, 0x72, 0x6f, 0x6c, 0x6c, 0x65, 0x72, 0x47, 0x65, 0x74,
+	0x47, 0x53, 0x4c, 0x42, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x12, 0x17, 0x0a, 0x07, 0x47,
+	0x53, 0x4c, 0x42, 0x5f, 0x69, 0x64, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x06, 0x47, 0x53,
+	0x4c, 0x42, 0x49, 0x64, 0x22, 0x2f, 0x0a, 0x19, 0x43, 0x6f, 0x6e, 0x74, 0x72, 0x6f, 0x6c, 0x6c,
+	0x65, 0x72, 0x47, 0x65, 0x74, 0x47, 0x53, 0x4c, 0x42, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73,
+	0x65, 0x12, 0x12, 0x0a, 0x04, 0x47, 0x53, 0x4c, 0x42, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52,
+	0x04, 0x47, 0x53, 0x4c, 0x42, 0x32, 0x86, 0x02, 0x0a, 0x08, 0x49, 0x64, 0x65, 0x6e, 0x74, 0x69,
+	0x74, 0x79, 0x12, 0x52, 0x0a, 0x0d, 0x47, 0x65, 0x74, 0x50, 0x6c, 0x75, 0x67, 0x69, 0x6e, 0x49,
+	0x6e, 0x66, 0x6f, 0x12, 0x1e, 0x2e, 0x67, 0x73, 0x6c, 0x62, 0x69, 0x2e, 0x76, 0x31, 0x2e, 0x47,
+	0x65, 0x74, 0x50, 0x6c, 0x75, 0x67, 0x69, 0x6e, 0x49, 0x6e, 0x66, 0x6f, 0x52, 0x65, 0x71, 0x75,
+	0x65, 0x73, 0x74, 0x1a, 0x1f, 0x2e, 0x67, 0x73, 0x6c, 0x62, 0x69, 0x2e, 0x76, 0x31, 0x2e, 0x47,
+	0x65, 0x74, 0x50, 0x6c, 0x75, 0x67, 0x69, 0x6e, 0x49, 0x6e, 0x66, 0x6f, 0x52, 0x65, 0x73, 0x70,
+	0x6f, 0x6e, 0x73, 0x65, 0x22, 0x00, 0x12, 0x6a, 0x0a, 0x15, 0x47, 0x65, 0x74, 0x50, 0x6c, 0x75,
+	0x67, 0x69, 0x6e, 0x43, 0x61, 0x70, 0x61, 0x62, 0x69, 0x6c, 0x69, 0x74, 0x69, 0x65, 0x73, 0x12,
+	0x26, 0x2e, 0x67, 0x73, 0x6c, 0x62, 0x69, 0x2e, 0x76, 0x31, 0x2e, 0x47, 0x65, 0x74, 0x50, 0x6c,
+	0x75, 0x67, 0x69, 0x6e, 0x43, 0x61, 0x70, 0x61, 0x62, 0x69, 0x6c, 0x69, 0x74, 0x69, 0x65, 0x73,
+	0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x27, 0x2e, 0x67, 0x73, 0x6c, 0x62, 0x69, 0x2e,
+	0x76, 0x31, 0x2e, 0x47, 0x65, 0x74, 0x50, 0x6c, 0x75, 0x67, 0x69, 0x6e, 0x43, 0x61, 0x70, 0x61,
+	0x62, 0x69, 0x6c, 0x69, 0x74, 0x69, 0x65, 0x73, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65,
+	0x22, 0x00, 0x12, 0x3a, 0x0a, 0x05, 0x50, 0x72, 0x6f, 0x62, 0x65, 0x12, 0x16, 0x2e, 0x67, 0x73,
+	0x6c, 0x62, 0x69, 0x2e, 0x76, 0x31, 0x2e, 0x50, 0x72, 0x6f, 0x62, 0x65, 0x52, 0x65, 0x71, 0x75,
+	0x65, 0x73, 0x74, 0x1a, 0x17, 0x2e, 0x67, 0x73, 0x6c, 0x62, 0x69, 0x2e, 0x76, 0x31, 0x2e, 0x50,
+	0x72, 0x6f, 0x62, 0x65, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x00, 0x32, 0x82,
+	0x02, 0x0a, 0x0a, 0x43, 0x6f, 0x6e, 0x74, 0x72, 0x6f, 0x6c, 0x6c, 0x65, 0x72, 0x12, 0x49, 0x0a,
+	0x0a, 0x43, 0x72, 0x65, 0x61, 0x74, 0x65, 0x47, 0x53, 0x4c, 0x42, 0x12, 0x1b, 0x2e, 0x67, 0x73,
+	0x6c, 0x62, 0x69, 0x2e, 0x76, 0x31, 0x2e, 0x43, 0x72, 0x65, 0x61, 0x74, 0x65, 0x47, 0x53, 0x4c,
 	0x42, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x1c, 0x2e, 0x67, 0x73, 0x6c, 0x62, 0x69,
-	0x2e, 0x76, 0x31, 0x2e, 0x44, 0x65, 0x6c, 0x65, 0x74, 0x65, 0x47, 0x53, 0x4c, 0x42, 0x52, 0x65,
-	0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x00, 0x12, 0x5e, 0x0a, 0x11, 0x43, 0x6f, 0x6e, 0x74,
-	0x72, 0x6f, 0x6c, 0x6c, 0x65, 0x72, 0x47, 0x65, 0x74, 0x47, 0x53, 0x4c, 0x42, 0x12, 0x22, 0x2e,
-	0x67, 0x73, 0x6c, 0x62, 0x69, 0x2e, 0x76, 0x31, 0x2e, 0x43, 0x6f, 0x6e, 0x74, 0x72, 0x6f, 0x6c,
-	0x6c, 0x65, 0x72, 0x47, 0x65, 0x74, 0x47, 0x53, 0x4c, 0x42, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73,
-	0x74, 0x1a, 0x23, 0x2e, 0x67, 0x73, 0x6c, 0x62, 0x69, 0x2e, 0x76, 0x31, 0x2e, 0x43, 0x6f, 0x6e,
-	0x74, 0x72, 0x6f, 0x6c, 0x6c, 0x65, 0x72, 0x47, 0x65, 0x74, 0x47, 0x53, 0x4c, 0x42, 0x52, 0x65,
-	0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x00, 0x42, 0x38, 0x5a, 0x36, 0x67, 0x69, 0x74, 0x68,
-	0x75, 0x62, 0x2e, 0x63, 0x6f, 0x6d, 0x2f, 0x73, 0x6e, 0x61, 0x70, 0x70, 0x2d, 0x63, 0x61, 0x62,
-	0x2f, 0x63, 0x6f, 0x6e, 0x73, 0x75, 0x6c, 0x2d, 0x67, 0x73, 0x6c, 0x62, 0x2d, 0x64, 0x72, 0x69,
-	0x76, 0x65, 0x72, 0x2f, 0x69, 0x6e, 0x74, 0x65, 0x72, 0x6e, 0x61, 0x6c, 0x2f, 0x67, 0x73, 0x6c,
-	0x62, 0x69, 0x62, 0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
+	0x2e, 0x76, 0x31, 0x2e, 0x43, 0x72, 0x65, 0x61, 0x74, 0x65, 0x47, 0x53, 0x4c, 0x42, 0x52, 0x65,
+	0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x00, 0x12, 0x49, 0x0a, 0x0a, 0x44, 0x65, 0x6c, 0x65,
+	0x74, 0x65, 0x47, 0x53, 0x4c, 0x42, 0x12, 0x1b, 0x2e, 0x67, 0x73, 0x6c, 0x62, 0x69, 0x2e, 0x76,
+	0x31, 0x2e, 0x44, 0x65, 0x6c, 0x65, 0x74, 0x65, 0x47, 0x53, 0x4c, 0x42, 0x52, 0x65, 0x71, 0x75,
+	0x65, 0x73, 0x74, 0x1a, 0x1c, 0x2e, 0x67, 0x73, 0x6c, 0x62, 0x69, 0x2e, 0x76, 0x31, 0x2e, 0x44,
+	0x65, 0x6c, 0x65, 0x74, 0x65, 0x47, 0x53, 0x4c, 0x42, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73,
+	0x65, 0x22, 0x00, 0x12, 0x5e, 0x0a, 0x11, 0x43, 0x6f, 0x6e, 0x74, 0x72, 0x6f, 0x6c, 0x6c, 0x65,
+	0x72, 0x47, 0x65, 0x74, 0x47, 0x53, 0x4c, 0x42, 0x12, 0x22, 0x2e, 0x67, 0x73, 0x6c, 0x62, 0x69,
+	0x2e, 0x76, 0x31, 0x2e, 0x43, 0x6f, 0x6e, 0x74, 0x72, 0x6f, 0x6c, 0x6c, 0x65, 0x72, 0x47, 0x65,
+	0x74, 0x47, 0x53, 0x4c, 0x42, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x23, 0x2e, 0x67,
+	0x73, 0x6c, 0x62, 0x69, 0x2e, 0x76, 0x31, 0x2e, 0x43, 0x6f, 0x6e, 0x74, 0x72, 0x6f, 0x6c, 0x6c,
+	0x65, 0x72, 0x47, 0x65, 0x74, 0x47, 0x53, 0x4c, 0x42, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73,
+	0x65, 0x22, 0x00, 0x42, 0x38, 0x5a, 0x36, 0x67, 0x69, 0x74, 0x68, 0x75, 0x62, 0x2e, 0x63, 0x6f,
+	0x6d, 0x2f, 0x73, 0x6e, 0x61, 0x70, 0x70, 0x2d, 0x63, 0x61, 0x62, 0x2f, 0x63, 0x6f, 0x6e, 0x73,
+	0x75, 0x6c, 0x2d, 0x67, 0x73, 0x6c, 0x62, 0x2d, 0x64, 0x72, 0x69, 0x76, 0x65, 0x72, 0x2f, 0x69,
+	0x6e, 0x74, 0x65, 0x72, 0x6e, 0x61, 0x6c, 0x2f, 0x67, 0x73, 0x6c, 0x62, 0x69, 0x62, 0x06, 0x70,
+	0x72, 0x6f, 0x74, 0x6f, 0x33,
 }
 
 var (
@@ -371,27 +1068,54 @@ func file_gslbi_gslbi_proto_rawDescGZIP() []byte {
 	return file_gslbi_gslbi_proto_rawDescData
 }
 
-var file_gslbi_gslbi_proto_msgTypes = make([]protoimpl.MessageInfo, 6)
+var file_gslbi_gslbi_proto_enumTypes = make([]protoimpl.EnumInfo, 2)
+var file_gslbi_gslbi_proto_msgTypes = make([]protoimpl.MessageInfo, 16)
 var file_gslbi_gslbi_proto_goTypes = []interface{}{
-	(*CreateGSLBRequest)(nil),         // 0: gslbi.v1.CreateGSLBRequest
-	(*CreateGSLBResponse)(nil),        // 1: gslbi.v1.CreateGSLBResponse
-	(*DeleteGSLBRequest)(nil),         // 2: gslbi.v1.DeleteGSLBRequest
-	(*DeleteGSLBResponse)(nil),        // 3: gslbi.v1.DeleteGSLBResponse
-	(*ControllerGetGSLBRequest)(nil),  // 4: gslbi.v1.ControllerGetGSLBRequest
-	(*ControllerGetGSLBResponse)(nil), // 5: gslbi.v1.ControllerGetGSLBResponse
+	(PluginCapability_Service_Type)(0),         // 0: gslbi.v1.PluginCapability.Service.Type
+	(PluginCapability_VolumeExpansion_Type)(0), // 1: gslbi.v1.PluginCapability.VolumeExpansion.Type
+	(*GetPluginInfoRequest)(nil),               // 2: gslbi.v1.GetPluginInfoRequest
+	(*GetPluginInfoResponse)(nil),              // 3: gslbi.v1.GetPluginInfoResponse
+	(*GetPluginCapabilitiesRequest)(nil),       // 4: gslbi.v1.GetPluginCapabilitiesRequest
+	(*GetPluginCapabilitiesResponse)(nil),      // 5: gslbi.v1.GetPluginCapabilitiesResponse
+	(*PluginCapability)(nil),                   // 6: gslbi.v1.PluginCapability
+	(*ProbeRequest)(nil),                       // 7: gslbi.v1.ProbeRequest
+	(*ProbeResponse)(nil),                      // 8: gslbi.v1.ProbeResponse
+	(*CreateGSLBRequest)(nil),                  // 9: gslbi.v1.CreateGSLBRequest
+	(*CreateGSLBResponse)(nil),                 // 10: gslbi.v1.CreateGSLBResponse
+	(*DeleteGSLBRequest)(nil),                  // 11: gslbi.v1.DeleteGSLBRequest
+	(*DeleteGSLBResponse)(nil),                 // 12: gslbi.v1.DeleteGSLBResponse
+	(*ControllerGetGSLBRequest)(nil),           // 13: gslbi.v1.ControllerGetGSLBRequest
+	(*ControllerGetGSLBResponse)(nil),          // 14: gslbi.v1.ControllerGetGSLBResponse
+	nil,                                        // 15: gslbi.v1.GetPluginInfoResponse.ManifestEntry
+	(*PluginCapability_Service)(nil),           // 16: gslbi.v1.PluginCapability.Service
+	(*PluginCapability_VolumeExpansion)(nil),   // 17: gslbi.v1.PluginCapability.VolumeExpansion
+	(*wrapperspb.BoolValue)(nil),               // 18: google.protobuf.BoolValue
 }
 var file_gslbi_gslbi_proto_depIdxs = []int32{
-	0, // 0: gslbi.v1.Controller.CreateGSLB:input_type -> gslbi.v1.CreateGSLBRequest
-	2, // 1: gslbi.v1.Controller.DeleteGSLB:input_type -> gslbi.v1.DeleteGSLBRequest
-	4, // 2: gslbi.v1.Controller.ControllerGetGSLB:input_type -> gslbi.v1.ControllerGetGSLBRequest
-	1, // 3: gslbi.v1.Controller.CreateGSLB:output_type -> gslbi.v1.CreateGSLBResponse
-	3, // 4: gslbi.v1.Controller.DeleteGSLB:output_type -> gslbi.v1.DeleteGSLBResponse
-	5, // 5: gslbi.v1.Controller.ControllerGetGSLB:output_type -> gslbi.v1.ControllerGetGSLBResponse
-	3, // [3:6] is the sub-list for method output_type
-	0, // [0:3] is the sub-list for method input_type
-	0, // [0:0] is the sub-list for extension type_name
-	0, // [0:0] is the sub-list for extension extendee
-	0, // [0:0] is the sub-list for field type_name
+	15, // 0: gslbi.v1.GetPluginInfoResponse.manifest:type_name -> gslbi.v1.GetPluginInfoResponse.ManifestEntry
+	6,  // 1: gslbi.v1.GetPluginCapabilitiesResponse.capabilities:type_name -> gslbi.v1.PluginCapability
+	16, // 2: gslbi.v1.PluginCapability.service:type_name -> gslbi.v1.PluginCapability.Service
+	17, // 3: gslbi.v1.PluginCapability.volume_expansion:type_name -> gslbi.v1.PluginCapability.VolumeExpansion
+	18, // 4: gslbi.v1.ProbeResponse.ready:type_name -> google.protobuf.BoolValue
+	0,  // 5: gslbi.v1.PluginCapability.Service.type:type_name -> gslbi.v1.PluginCapability.Service.Type
+	1,  // 6: gslbi.v1.PluginCapability.VolumeExpansion.type:type_name -> gslbi.v1.PluginCapability.VolumeExpansion.Type
+	2,  // 7: gslbi.v1.Identity.GetPluginInfo:input_type -> gslbi.v1.GetPluginInfoRequest
+	4,  // 8: gslbi.v1.Identity.GetPluginCapabilities:input_type -> gslbi.v1.GetPluginCapabilitiesRequest
+	7,  // 9: gslbi.v1.Identity.Probe:input_type -> gslbi.v1.ProbeRequest
+	9,  // 10: gslbi.v1.Controller.CreateGSLB:input_type -> gslbi.v1.CreateGSLBRequest
+	11, // 11: gslbi.v1.Controller.DeleteGSLB:input_type -> gslbi.v1.DeleteGSLBRequest
+	13, // 12: gslbi.v1.Controller.ControllerGetGSLB:input_type -> gslbi.v1.ControllerGetGSLBRequest
+	3,  // 13: gslbi.v1.Identity.GetPluginInfo:output_type -> gslbi.v1.GetPluginInfoResponse
+	5,  // 14: gslbi.v1.Identity.GetPluginCapabilities:output_type -> gslbi.v1.GetPluginCapabilitiesResponse
+	8,  // 15: gslbi.v1.Identity.Probe:output_type -> gslbi.v1.ProbeResponse
+	10, // 16: gslbi.v1.Controller.CreateGSLB:output_type -> gslbi.v1.CreateGSLBResponse
+	12, // 17: gslbi.v1.Controller.DeleteGSLB:output_type -> gslbi.v1.DeleteGSLBResponse
+	14, // 18: gslbi.v1.Controller.ControllerGetGSLB:output_type -> gslbi.v1.ControllerGetGSLBResponse
+	13, // [13:19] is the sub-list for method output_type
+	7,  // [7:13] is the sub-list for method input_type
+	7,  // [7:7] is the sub-list for extension type_name
+	7,  // [7:7] is the sub-list for extension extendee
+	0,  // [0:7] is the sub-list for field type_name
 }
 
 func init() { file_gslbi_gslbi_proto_init() }
@@ -401,7 +1125,7 @@ func file_gslbi_gslbi_proto_init() {
 	}
 	if !protoimpl.UnsafeEnabled {
 		file_gslbi_gslbi_proto_msgTypes[0].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*CreateGSLBRequest); i {
+			switch v := v.(*GetPluginInfoRequest); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -413,7 +1137,7 @@ func file_gslbi_gslbi_proto_init() {
 			}
 		}
 		file_gslbi_gslbi_proto_msgTypes[1].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*CreateGSLBResponse); i {
+			switch v := v.(*GetPluginInfoResponse); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -425,7 +1149,7 @@ func file_gslbi_gslbi_proto_init() {
 			}
 		}
 		file_gslbi_gslbi_proto_msgTypes[2].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*DeleteGSLBRequest); i {
+			switch v := v.(*GetPluginCapabilitiesRequest); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -437,7 +1161,7 @@ func file_gslbi_gslbi_proto_init() {
 			}
 		}
 		file_gslbi_gslbi_proto_msgTypes[3].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*DeleteGSLBResponse); i {
+			switch v := v.(*GetPluginCapabilitiesResponse); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -449,7 +1173,7 @@ func file_gslbi_gslbi_proto_init() {
 			}
 		}
 		file_gslbi_gslbi_proto_msgTypes[4].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*ControllerGetGSLBRequest); i {
+			switch v := v.(*PluginCapability); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -461,6 +1185,90 @@ func file_gslbi_gslbi_proto_init() {
 			}
 		}
 		file_gslbi_gslbi_proto_msgTypes[5].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*ProbeRequest); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_gslbi_gslbi_proto_msgTypes[6].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*ProbeResponse); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_gslbi_gslbi_proto_msgTypes[7].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*CreateGSLBRequest); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_gslbi_gslbi_proto_msgTypes[8].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*CreateGSLBResponse); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_gslbi_gslbi_proto_msgTypes[9].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*DeleteGSLBRequest); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_gslbi_gslbi_proto_msgTypes[10].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*DeleteGSLBResponse); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_gslbi_gslbi_proto_msgTypes[11].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*ControllerGetGSLBRequest); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_gslbi_gslbi_proto_msgTypes[12].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*ControllerGetGSLBResponse); i {
 			case 0:
 				return &v.state
@@ -472,19 +1280,48 @@ func file_gslbi_gslbi_proto_init() {
 				return nil
 			}
 		}
+		file_gslbi_gslbi_proto_msgTypes[14].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*PluginCapability_Service); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_gslbi_gslbi_proto_msgTypes[15].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*PluginCapability_VolumeExpansion); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+	}
+	file_gslbi_gslbi_proto_msgTypes[4].OneofWrappers = []interface{}{
+		(*PluginCapability_Service_)(nil),
+		(*PluginCapability_VolumeExpansion_)(nil),
 	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: file_gslbi_gslbi_proto_rawDesc,
-			NumEnums:      0,
-			NumMessages:   6,
+			NumEnums:      2,
+			NumMessages:   16,
 			NumExtensions: 0,
-			NumServices:   1,
+			NumServices:   2,
 		},
 		GoTypes:           file_gslbi_gslbi_proto_goTypes,
 		DependencyIndexes: file_gslbi_gslbi_proto_depIdxs,
+		EnumInfos:         file_gslbi_gslbi_proto_enumTypes,
 		MessageInfos:      file_gslbi_gslbi_proto_msgTypes,
 	}.Build()
 	File_gslbi_gslbi_proto = out.File

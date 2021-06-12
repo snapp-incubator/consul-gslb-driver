@@ -2,9 +2,21 @@
 syntax = "proto3";
 package gslbi.v1;
 
+import "google/protobuf/wrappers.proto";
 
 option go_package = "github.com/snapp-cab/consul-gslb-driver/internal/gslbi";
 
+
+service Identity {
+  rpc GetPluginInfo(GetPluginInfoRequest)
+    returns (GetPluginInfoResponse) {}
+
+  rpc GetPluginCapabilities(GetPluginCapabilitiesRequest)
+    returns (GetPluginCapabilitiesResponse) {}
+
+  rpc Probe (ProbeRequest)
+    returns (ProbeResponse) {}
+}
 
 service Controller {
   rpc CreateGSLB (CreateGSLBRequest)
@@ -18,6 +30,134 @@ service Controller {
     }
 }
 
+message GetPluginInfoRequest {
+  // Intentionally empty.
+}
+
+message GetPluginInfoResponse {
+  // This field is REQUIRED.
+  string name = 1;
+
+  // This field is REQUIRED. Value of this field is opaque to the CO.
+  string vendor_version = 2;
+
+  // This field is OPTIONAL. Values are opaque to the CO.
+  map<string, string> manifest = 3;
+}
+message GetPluginCapabilitiesRequest {
+  // Intentionally empty.
+}
+message GetPluginCapabilitiesResponse {
+  // All the capabilities that the controller service supports. This
+  // field is OPTIONAL.
+  repeated PluginCapability capabilities = 1;
+}
+
+// Specifies a capability of the plugin.
+message PluginCapability {
+  message Service {
+    enum Type {
+      UNKNOWN = 0;
+      // CONTROLLER_SERVICE indicates that the Plugin provides RPCs for
+      // the ControllerService. Plugins SHOULD provide this capability.
+      // In rare cases certain plugins MAY wish to omit the
+      // ControllerService entirely from their implementation, but such
+      // SHOULD NOT be the common case.
+      // The presence of this capability determines whether the CO will
+      // attempt to invoke the REQUIRED ControllerService RPCs, as well
+      // as specific RPCs as indicated by ControllerGetCapabilities.
+      CONTROLLER_SERVICE = 1;
+
+      // VOLUME_ACCESSIBILITY_CONSTRAINTS indicates that the volumes for
+      // this plugin MAY NOT be equally accessible by all nodes in the
+      // cluster. The CO MUST use the topology information returned by
+      // CreateVolumeRequest along with the topology information
+      // returned by NodeGetInfo to ensure that a given volume is
+      // accessible from a given node when scheduling workloads.
+      VOLUME_ACCESSIBILITY_CONSTRAINTS = 2;
+    }
+    Type type = 1;
+  }
+
+  message VolumeExpansion {
+    enum Type {
+      UNKNOWN = 0;
+
+      // ONLINE indicates that volumes may be expanded when published to
+      // a node. When a Plugin implements this capability it MUST
+      // implement either the EXPAND_VOLUME controller capability or the
+      // EXPAND_VOLUME node capability or both. When a plugin supports
+      // ONLINE volume expansion and also has the EXPAND_VOLUME
+      // controller capability then the plugin MUST support expansion of
+      // volumes currently published and available on a node. When a
+      // plugin supports ONLINE volume expansion and also has the
+      // EXPAND_VOLUME node capability then the plugin MAY support
+      // expansion of node-published volume via NodeExpandVolume.
+      //
+      // Example 1: Given a shared filesystem volume (e.g. GlusterFs),
+      //   the Plugin may set the ONLINE volume expansion capability and
+      //   implement ControllerExpandVolume but not NodeExpandVolume.
+      //
+      // Example 2: Given a block storage volume type (e.g. EBS), the
+      //   Plugin may set the ONLINE volume expansion capability and
+      //   implement both ControllerExpandVolume and NodeExpandVolume.
+      //
+      // Example 3: Given a Plugin that supports volume expansion only
+      //   upon a node, the Plugin may set the ONLINE volume
+      //   expansion capability and implement NodeExpandVolume but not
+      //   ControllerExpandVolume.
+      ONLINE = 1;
+
+      // OFFLINE indicates that volumes currently published and
+      // available on a node SHALL NOT be expanded via
+      // ControllerExpandVolume. When a plugin supports OFFLINE volume
+      // expansion it MUST implement either the EXPAND_VOLUME controller
+      // capability or both the EXPAND_VOLUME controller capability and
+      // the EXPAND_VOLUME node capability.
+      //
+      // Example 1: Given a block storage volume type (e.g. Azure Disk)
+      //   that does not support expansion of "node-attached" (i.e.
+      //   controller-published) volumes, the Plugin may indicate
+      //   OFFLINE volume expansion support and implement both
+      //   ControllerExpandVolume and NodeExpandVolume.
+      OFFLINE = 2;
+    }
+    Type type = 1;
+  }
+  oneof type {
+    // Service that the plugin supports.
+    Service service = 1;
+    VolumeExpansion volume_expansion = 2;
+  }
+}
+
+message ProbeRequest {
+  // Intentionally empty.
+}
+
+message ProbeResponse {
+  // Readiness allows a plugin to report its initialization status back
+  // to the CO. Initialization for some plugins MAY be time consuming
+  // and it is important for a CO to distinguish between the following
+  // cases:
+  //
+  // 1) The plugin is in an unhealthy state and MAY need restarting. In
+  //    this case a gRPC error code SHALL be returned.
+  // 2) The plugin is still initializing, but is otherwise perfectly
+  //    healthy. In this case a successful response SHALL be returned
+  //    with a readiness value of `false`. Calls to the plugin's
+  //    Controller and/or Node services MAY fail due to an incomplete
+  //    initialization state.
+  // 3) The plugin has finished initializing and is ready to service
+  //    calls to its Controller and/or Node services. A successful
+  //    response is returned with a readiness value of `true`.
+  //
+  // This field is OPTIONAL. If not present, the caller SHALL assume
+  // that the plugin is in a ready state and is accepting calls to its
+  // Controller and/or Node services (according to the plugin's reported
+  // capabilities).
+  .google.protobuf.BoolValue ready = 1;
+}
 
 message CreateGSLBRequest {
   // The suggested name for the gslb service.

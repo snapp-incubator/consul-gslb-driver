@@ -8,13 +8,13 @@ import (
 	"google.golang.org/grpc"
 	"k8s.io/klog/v2"
 
-	gslbi "github.com/snapp-cab/consul-gslb-driver/internal/gslbi"
+	"github.com/snapp-cab/consul-gslb-driver/internal/gslbi"
 )
 
 // NonBlockingGRPCServer defines Non blocking GRPC server interfaces
 type NonBlockingGRPCServer interface {
 	// Start services at the endpoint
-	Start(endpoint string, cs gslbi.ControllerServer)
+	Start(endpoint string, ids gslbi.IdentityServer, cs gslbi.ControllerServer)
 	// Waits for the service to stop
 	Wait()
 	// Stops the service gracefully
@@ -33,11 +33,11 @@ type nonBlockingGRPCServer struct {
 	server *grpc.Server
 }
 
-func (s *nonBlockingGRPCServer) Start(endpoint string, cs gslbi.ControllerServer) {
+func (s *nonBlockingGRPCServer) Start(endpoint string, ids gslbi.IdentityServer, cs gslbi.ControllerServer) {
 
 	s.wg.Add(1)
 
-	go s.serve(endpoint, cs)
+	go s.serve(endpoint, ids, cs)
 }
 
 func (s *nonBlockingGRPCServer) Wait() {
@@ -52,7 +52,7 @@ func (s *nonBlockingGRPCServer) ForceStop() {
 	s.server.Stop()
 }
 
-func (s *nonBlockingGRPCServer) serve(endpoint string, cs gslbi.ControllerServer) {
+func (s *nonBlockingGRPCServer) serve(endpoint string, ids gslbi.IdentityServer, cs gslbi.ControllerServer) {
 
 	proto, addr, err := ParseEndpoint(endpoint)
 	if err != nil {
@@ -77,6 +77,9 @@ func (s *nonBlockingGRPCServer) serve(endpoint string, cs gslbi.ControllerServer
 	server := grpc.NewServer(opts...)
 	s.server = server
 
+	if ids != nil {
+		gslbi.RegisterIdentityServer(server, ids)
+	}
 	if cs != nil {
 		gslbi.RegisterControllerServer(server, cs)
 	}

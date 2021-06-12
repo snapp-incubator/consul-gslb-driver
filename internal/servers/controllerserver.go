@@ -3,7 +3,7 @@ package servers
 import (
 	"fmt"
 
-	gslbi "github.com/snapp-cab/consul-gslb-driver/internal/gslbi"
+	"github.com/snapp-cab/consul-gslb-driver/internal/gslbi"
 	"golang.org/x/net/context"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -15,8 +15,6 @@ type controllerServer struct {
 	Driver *ConsulDriver
 	gslbi.UnimplementedControllerServer
 }
-
-// func (cs *controllerServer) mustEmbedUnimplementedControllerServer() {}
 
 func (cs *controllerServer) CreateGSLB(ctx context.Context, req *gslbi.CreateGSLBRequest) (*gslbi.CreateGSLBResponse, error) {
 	// klog.V(4).Infof("CreateGSLB: called with args %+v", protosanitizer.StripSecrets(*req))

@@ -3,83 +3,91 @@ package main
 import (
 	"context"
 	"flag"
+	"net/http"
 	"os"
 	"time"
 
-	"k8s.io/klog/v2"
-
-	"github.com/kubernetes-csi/csi-lib-utils/connection"
-	"github.com/kubernetes-csi/csi-lib-utils/metrics"
-	"github.com/kubernetes-csi/csi-lib-utils/rpc"
-
-	gslbi "github.com/snapp-cab/consul-gslb-driver/internal/gslbi"
-
+	"github.com/prometheus/client_golang/prometheus/promhttp"
+	"github.com/snapp-cab/consul-gslb-driver/internal/connection"
+	"github.com/snapp-cab/consul-gslb-driver/internal/gslbi"
+	"github.com/snapp-cab/consul-gslb-driver/internal/rpc"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
+	"k8s.io/klog/v2"
 )
 
 const (
-
-	// Default timeout of short CSI calls like GetPluginInfo
-	csiTimeout = time.Second
+	// Default timeout of short GSLBI calls like GetPluginInfo
+	gslbiTimeout = time.Second
 )
 
 // Command line flags
 var (
-	csiAddress = flag.String("csi-address", "unix://Users/my/gitlab/consul-gslb-driver/socket", "Address of the CSI driver socket.")
-	timeout    = flag.Duration("timeout", 15*time.Second, "Timeout for waiting for attaching or detaching the volume.")
+	gslbiAddress = "/Users/my/gitlab/consul-gslb-driver/socket" // Address of the GSLBI driver socket.
+	timeout      = flag.Duration("timeout", 15*time.Second, "Timeout for waiting for creating or deleting the gslb.")
 )
-
-var (
-	version = "unknown"
-)
-
-type leaderElection interface {
-	Run() error
-	WithNamespace(namespace string)
-}
 
 func main() {
-
-	metricsManager := metrics.NewCSIMetricsManager("" /* driverName */)
-	// Connect to CSI.
-	klog.Warning("Here")
-	csiConn, err := connection.Connect(*csiAddress, metricsManager, connection.OnConnectionLoss(connection.ExitOnConnectionLoss()))
+	// Connect to GSLBI.
+	gslbiConn, err := connection.Connect(gslbiAddress, []grpc.DialOption{}, connection.OnConnectionLoss(connection.ExitOnConnectionLoss()))
 	if err != nil {
 		klog.Error(err.Error())
 		os.Exit(1)
 	}
-	err = rpc.ProbeForever(csiConn, *timeout)
+	err = rpc.ProbeForever(gslbiConn, *timeout)
 	if err != nil {
 		klog.Error(err.Error())
 		os.Exit(1)
 	}
 
-	ctx, cancel := context.WithTimeout(context.Background(), csiTimeout)
+	// Find driver name.
+	ctx, cancel := context.WithTimeout(context.Background(), gslbiTimeout)
 	defer cancel()
-	h := NewAttacher(csiConn)
+	gslbiAttacher, err := rpc.GetDriverName(ctx, gslbiConn)
+	if err != nil {
+		klog.Error(err.Error())
+		os.Exit(1)
+	}
+	klog.V(2).Infof("gslbi driver name: %q", gslbiAttacher)
+
+	// Prepare http endpoint for metrics + leader election healthz
+	mux := http.NewServeMux()
+	mux.Handle("/metrics", promhttp.Handler())
+	addr := "localhost:8080"
+	if addr != "" {
+		go func() {
+			klog.Infof("ServeMux listening at %q", addr)
+			err := http.ListenAndServe(addr, mux)
+			if err != nil {
+				klog.Fatalf("Failed to start HTTP server at specified address (%q): %s", addr, err)
+			}
+		}()
+	}
+
+	h := NewAttacher(gslbiConn)
 	h.Create(ctx, "hi")
+	time.Sleep(100 * time.Second)
 }
 
-// Attacher implements attach/detach operations against a remote CSI driver.
+// Attacher implements create/delete operations against a remote gslbi driver.
 type Attacher interface {
-	Create(ctx context.Context, v string) (gslb string, detached bool, err error)
+	Create(ctx context.Context, v string) (gslb string, deleted bool, err error)
 	Delete(ctx context.Context) error
 }
 
-type attacher struct {
+type creater struct {
 	conn *grpc.ClientConn
 }
 
 // NewAttacher provides a new Attacher object.
 func NewAttacher(conn *grpc.ClientConn) Attacher {
-	return &attacher{
+	return &creater{
 		conn: conn,
 	}
 }
 
-func (a *attacher) Create(ctx context.Context, v string) (gslb string, detached bool, err error) {
+func (a *creater) Create(ctx context.Context, v string) (gslb string, deleted bool, err error) {
 	client := gslbi.NewControllerClient(a.conn)
 
 	req := gslbi.CreateGSLBRequest{
@@ -93,7 +101,7 @@ func (a *attacher) Create(ctx context.Context, v string) (gslb string, detached 
 	return rsp.GSLB, false, nil
 }
 
-func (a *attacher) Delete(ctx context.Context) error {
+func (a *creater) Delete(ctx context.Context) error {
 	client := gslbi.NewControllerClient(a.conn)
 
 	req := gslbi.DeleteGSLBRequest{
@@ -104,14 +112,7 @@ func (a *attacher) Delete(ctx context.Context) error {
 	return err
 }
 
-func logGRPC(ctx context.Context, method string, req, reply interface{}, cc *grpc.ClientConn, invoker grpc.UnaryInvoker, opts ...grpc.CallOption) error {
-	klog.V(5).Infof("GRPC call: %s", method)
-	// klog.V(5).Infof("GRPC request: %s", protosanitizer.StripSecrets(req))
-	err := invoker(ctx, method, req, reply, cc, opts...)
-	// klog.V(5).Infof("GRPC response: %s", protosanitizer.StripSecrets(reply))
-	klog.V(5).Infof("GRPC error: %v", err)
-	return err
-}
+//// another utils
 
 // isFinished returns true if given error represents final error of an
 // operation. That means the operation has failed completely and cannot be in
@@ -119,9 +120,7 @@ func logGRPC(ctx context.Context, method string, req, reply interface{}, cc *grp
 // like timeout and the operation itself or previous call to the same
 // operation can be actually in progress.
 func isFinalError(err error) bool {
-	// Sources:
-	// https://github.com/grpc/grpc/blob/master/doc/statuscodes.md
-	// https://github.com/container-storage-interface/spec/blob/master/spec.md
+	// Source: https://github.com/grpc/grpc/blob/master/doc/statuscodes.md
 	st, ok := status.FromError(err)
 	if !ok {
 		// This is not gRPC error. The operation must have failed before gRPC
@@ -133,10 +132,10 @@ func isFinalError(err error) bool {
 		codes.DeadlineExceeded,  // gRPC: Timeout
 		codes.Unavailable,       // gRPC: Server shutting down, TCP connection broken - previous Attach() or Detach() may be still in progress.
 		codes.ResourceExhausted, // gRPC: Server temporarily out of resources - previous Attach() or Detach() may be still in progress.
-		codes.Aborted:           // CSI: Operation pending for volume
+		codes.Aborted:           // GSLBI: Operation pending for gslb
 		return false
 	}
-	// All other errors mean that the operation (attach/detach) either did not
+	// All other errors mean that the operation (create/delete) either did not
 	// even start or failed. It is for sure not in progress.
 	return true
 }

@@ -19,6 +19,7 @@ type ConsulDriver struct {
 	endpoint     string
 	datacenter   string
 	consulConfig string
+	ids          *identityServer
 	cs           *controllerServer
 }
 
@@ -38,11 +39,18 @@ func NewDriver(endpoint, datacenter string) *ConsulDriver {
 }
 
 func (d *ConsulDriver) SetupDriver() {
+	d.ids = NewIdentityServer(d)
 	d.cs = NewControllerServer(d)
 }
 
 func (d *ConsulDriver) Run() {
-	RunControllerServer(d.endpoint, d.cs)
+	RunServers(d.endpoint, d.ids, d.cs)
+}
+
+func NewIdentityServer(d *ConsulDriver) *identityServer {
+	return &identityServer{
+		Driver: d,
+	}
 }
 
 func NewControllerServer(d *ConsulDriver) *controllerServer {
