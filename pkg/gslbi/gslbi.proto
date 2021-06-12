@@ -122,6 +122,19 @@ message CreateGSLBRequest {
   // The suggested name for the gslb service.
   // This field is REQUIRED.
   string name = 1;
+
+  // The host address of backend service. Can be IPv4 or DNS Domain
+  // This field is REQUIRED.
+  string host = 2;
+
+  // Weight
+  int32 weight = 3;
+
+  // Plugin specific parameters passed in as opaque key-value pairs.
+  // This field is OPTIONAL. The Plugin is responsible for parsing and
+  // validating these parameters. COs will treat these as opaque.
+  map<string, string> parameters = 4;
+
 }
 
 message CreateGSLBResponse {
