@@ -7,12 +7,6 @@ import (
 	"k8s.io/klog/v2"
 )
 
-var (
-	endpoint     string
-	consulConfig string
-	datacenter   string
-)
-
 func newStartCmd(c *Config) *cobra.Command {
 
 	startCmd := &cobra.Command{
@@ -22,16 +16,25 @@ func newStartCmd(c *Config) *cobra.Command {
 			start(c)
 		},
 	}
-	startCmd.Flags().IntVarP(&c.Listen.Port, "port", "p", 8080, "port to bind to")
-	if err := viper.BindPFlag("port", startCmd.Flags().Lookup("port")); err != nil {
+	var flag string
+
+	flag = "grpcAddress"
+	startCmd.Flags().StringVar(&c.GRPCAddress, flag, "unix://var/run/gslbi/gslbi.sock", "grpc address to listen on")
+	if err := viper.BindPFlag(flag, startCmd.Flags().Lookup(flag)); err != nil {
 		klog.ErrorS(err, "unable to bind flag")
 	}
+
+	flag = "metrics-port"
+	startCmd.Flags().IntVarP(&c.MetricServer.Port, flag, "p", 8080, "port to bind to")
+	if err := viper.BindPFlag(flag, startCmd.Flags().Lookup(flag)); err != nil {
+		klog.ErrorS(err, "unable to bind flag")
+	}
+
 	return startCmd
 }
 
 func start(c *Config) {
-	endpoint = c.Listen.IP
-	d := servers.NewDriver(endpoint, datacenter)
+	d := servers.NewDriver(c.GRPCAddress, c.ConsulConfig.Datacenter)
 	d.SetupDriver()
 	d.Run()
 

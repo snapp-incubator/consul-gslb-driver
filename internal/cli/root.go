@@ -12,7 +12,16 @@ import (
 
 var (
 	cfgFile string
-	config  = &Config{}
+
+	// Creates a Config struct with default values.
+	// If a default pflag value is set in cobra, this is being overrided
+	// so those variables MUST NOT be declared here.
+	config = &Config{
+		MetricServer: MetricServer{
+			IP:   "127.0.0.1",
+			Path: "/metrics",
+		},
+	}
 
 	rootCmd = &cobra.Command{
 		Use:   "consul-gslb-driver",
@@ -58,6 +67,11 @@ func initConfig() {
 		viper.SetConfigName("config.yaml")
 	}
 
+	// check if verbosity flag is passed or not.
+	// This value should be read before viper.ReadInConfig
+	// If not set we update it manually form vipers config later
+	verbosity := viper.GetString("v")
+
 	viper.AutomaticEnv()
 
 	if err := viper.ReadInConfig(); err == nil {
@@ -68,7 +82,7 @@ func initConfig() {
 	if err := viper.Unmarshal(config); err != nil {
 		klog.ErrorS(err, "Failed to unmarshal config")
 	}
-	verbosity := viper.GetString("v")
+
 	// Manually update v flag from viper config file
 	if verbosity == "0" {
 		if err := goflag.Set("v", viper.GetString("v")); err != nil {
@@ -76,5 +90,5 @@ func initConfig() {
 			return
 		}
 	}
-	klog.InfoS("Verbosity", "v", verbosity)
+	klog.InfoS("Verbosity", "v", viper.GetString("v"))
 }
