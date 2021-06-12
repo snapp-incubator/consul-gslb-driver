@@ -15,7 +15,7 @@ grpcurl -proto gslbi.proto -d '{"serviceID": "hi123"}' -plaintext -unix /users/m
 ## Generate gRPC code
 
 ```bash
-cd internal
+cd pkg
 protoc --go_out=. --go_opt=paths=source_relative \
     --go-grpc_out=. --go-grpc_opt=paths=source_relative \
     gslbi/gslbi.proto

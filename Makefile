@@ -83,13 +83,19 @@ vet: ## Run go vet against code.
 ENVTEST_ASSETS_DIR=$(shell pwd)/testbin
 test: fmt vet ## Run tests.
 
+proto-generate:
+	cd pkg && protoc --go_out=. --go_opt=paths=source_relative \
+    --go-grpc_out=. --go-grpc_opt=paths=source_relative \
+    gslbi/gslbi.proto
+
 ##@ Build
 
-build: fmt vet ## Build manager binary.
+build: fmt vet proto-generate## Build manager binary.
 	go build -o bin/${NAME} main.go
+	go build -o bin/client cmd/client/main.go
 
-run: fmt vet ## Run a controller from your host.
-	go run ./main.go
+run: ## Run the driver on your host.
+	./bin/consul-gslb-driver start -c config.example.yaml -v=10
 
 docker-build: test ## Build docker image with the manager.
 	sudo podman build -t ${IMG} .

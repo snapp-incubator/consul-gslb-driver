@@ -8,7 +8,7 @@ import (
 	"google.golang.org/grpc"
 	"k8s.io/klog/v2"
 
-	"github.com/snapp-cab/consul-gslb-driver/internal/gslbi"
+	"github.com/snapp-cab/consul-gslb-driver/pkg/gslbi"
 )
 
 // NonBlockingGRPCServer defines Non blocking GRPC server interfaces
