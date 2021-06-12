@@ -107,7 +107,7 @@ type options struct {
 	reconnect func() bool
 }
 
-// LogGRPC is gPRC unary interceptor for logging of CSI messages at level 5. It removes any secrets from the message.
+// LogGRPC is gPRC unary interceptor for logging of GSLB messages at level 5. It removes any secrets from the message.
 func LogGRPC(ctx context.Context, method string, req, reply interface{}, cc *grpc.ClientConn, invoker grpc.UnaryInvoker, opts ...grpc.CallOption) error {
 	klog.V(5).Infof("GRPC call: %s", method)
 	klog.V(5).Infof("GRPC request: %s", protosanitizer.StripSecrets(req))
@@ -131,7 +131,7 @@ func OnConnectionLoss(reconnect func() bool) Option {
 // an error to /dev/termination-log and exits.
 func ExitOnConnectionLoss() func() bool {
 	return func() bool {
-		terminationMsg := "Lost connection to CSI driver, exiting"
+		terminationMsg := "Lost connection to GSLB driver, exiting"
 		if err := ioutil.WriteFile(terminationLogPath, []byte(terminationMsg), 0644); err != nil {
 			klog.Errorf("%s: %s", terminationLogPath, err)
 		}
