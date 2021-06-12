@@ -4,7 +4,6 @@
 
 Gslb driver for Hashicorp Consul.
 
-
 ## Development
 * `make test` Run tests.
 * `make build` builds golang app locally.
