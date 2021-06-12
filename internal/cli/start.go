@@ -1,6 +1,7 @@
 package cli
 
 import (
+	"github.com/snapp-cab/consul-gslb-driver/internal/consul"
 	"github.com/snapp-cab/consul-gslb-driver/internal/servers"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -35,7 +36,13 @@ func newStartCmd(c *Config) *cobra.Command {
 
 func start(c *Config) {
 	d := servers.NewDriver(c.GRPCAddress, c.ConsulConfig.Datacenter)
-	d.SetupDriver()
+	// consul.InitConsulProvider(cloudconfig)
+	consul, err := consul.GetConsul()
+	if err != nil {
+		klog.Warningf("Failed to GetConsul: %v", err)
+		return
+	}
+	d.SetupDriver(consul)
 	d.Run()
 
 	// addr := net.JoinHostPort(c.Listen.IP, strconv.Itoa(c.Listen.Port))

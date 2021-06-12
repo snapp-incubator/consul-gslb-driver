@@ -1,6 +1,7 @@
 package servers
 
 import (
+	"github.com/snapp-cab/consul-gslb-driver/internal/consul"
 	"k8s.io/klog/v2"
 )
 
@@ -38,9 +39,9 @@ func NewDriver(endpoint, datacenter string) *ConsulDriver {
 	return d
 }
 
-func (d *ConsulDriver) SetupDriver() {
+func (d *ConsulDriver) SetupDriver(consul consul.IConsul) {
 	d.ids = NewIdentityServer(d)
-	d.cs = NewControllerServer(d)
+	d.cs = NewControllerServer(d, consul)
 }
 
 func (d *ConsulDriver) Run() {
@@ -53,8 +54,9 @@ func NewIdentityServer(d *ConsulDriver) *identityServer {
 	}
 }
 
-func NewControllerServer(d *ConsulDriver) *controllerServer {
+func NewControllerServer(d *ConsulDriver, consul consul.IConsul) *controllerServer {
 	return &controllerServer{
 		Driver: d,
+		Consul: consul,
 	}
 }

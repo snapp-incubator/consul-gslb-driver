@@ -3,16 +3,17 @@ package servers
 import (
 	"fmt"
 
+	"github.com/snapp-cab/consul-gslb-driver/internal/consul"
 	"github.com/snapp-cab/consul-gslb-driver/pkg/gslbi"
 	"golang.org/x/net/context"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
-
 	"k8s.io/klog/v2"
 )
 
 type controllerServer struct {
 	Driver *ConsulDriver
+	Consul consul.IConsul
 	gslbi.UnimplementedControllerServer
 }
 
@@ -42,22 +43,23 @@ func (cs *controllerServer) CreateGSLB(ctx context.Context, req *gslbi.CreateGSL
 func (cs *controllerServer) DeleteGSLB(ctx context.Context, req *gslbi.DeleteGSLBRequest) (*gslbi.DeleteGSLBResponse, error) {
 	// klog.V(4).Infof("DeleteGSLB: called with args %+v", protosanitizer.StripSecrets(*req))
 
-	// Volume Delete
-	serviceID := req.GetServiceID()
-	if len(serviceID) == 0 {
-		return nil, status.Error(codes.InvalidArgument, "DeleteGSLB Service ID must be provided")
+	// GLSB Delete
+	gslbID := req.GetGslbId()
+	if len(gslbID) == 0 {
+		return nil, status.Error(codes.InvalidArgument, "DeleteGSLB GSLB ID must be provided")
 	}
-	// err := cs.Cloud.DeleteGSLB(volID)
-	// if err != nil {
-	// 	if cpoerrors.IsNotFound(err) {
-	// 		klog.V(3).Infof("Volume %s is already deleted.", volID)
-	// 		return &gslbi.DeleteGSLBResponse{}, nil
-	// 	}
-	// 	klog.Errorf("Failed to DeleteGSLB: %v", err)
-	// 	return nil, status.Error(codes.Internal, fmt.Sprintf("DeleteGSLB failed with error %v", err))
-	// }
+	err := cs.Consul.DeregService(gslbID)
 
-	klog.V(4).Infof("DeleteGSLB: Successfully deleted service %s", serviceID)
+	if err != nil {
+		if err.Error() == "NotFound" {
+			klog.V(3).Infof("Volume %s is already deleted.", gslbID)
+			return &gslbi.DeleteGSLBResponse{}, nil
+		}
+		klog.Errorf("Failed to DeleteGSLB: %v", err)
+		return nil, status.Error(codes.Internal, fmt.Sprintf("DeleteGSLB failed with error %v", err))
+	}
+
+	klog.V(4).Infof("DeleteGSLB: Successfully deleted service %s", gslbID)
 
 	return &gslbi.DeleteGSLBResponse{}, nil
 }

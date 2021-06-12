@@ -3,6 +3,7 @@ module github.com/snapp-cab/consul-gslb-driver
 go 1.16
 
 require (
+	github.com/hashicorp/consul/api v1.1.0
 	github.com/kubernetes-csi/csi-lib-utils v0.9.1
 	github.com/magiconair/properties v1.8.5 // indirect
 	github.com/mitchellh/mapstructure v1.4.1 // indirect

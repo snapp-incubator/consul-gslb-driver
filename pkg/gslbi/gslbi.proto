@@ -144,9 +144,9 @@ message CreateGSLBResponse {
 }
 
 message DeleteGSLBRequest {
-  // The ID of the GSLB to be deprovisioned.
+  // The ID of the GSLB to be created.
   // This field is REQUIRED.
-  string serviceID = 1;
+  string gslb_id = 1;
 }
 
 message DeleteGSLBResponse {

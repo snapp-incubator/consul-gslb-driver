@@ -105,7 +105,7 @@ func (a *creater) Delete(ctx context.Context) error {
 	client := gslbi.NewControllerClient(a.conn)
 
 	req := gslbi.DeleteGSLBRequest{
-		ServiceID: "sth",
+		GslbId: "sth",
 	}
 
 	_, err := client.DeleteGSLB(ctx, &req)
