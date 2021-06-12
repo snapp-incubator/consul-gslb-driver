@@ -67,67 +67,26 @@ message PluginCapability {
       // attempt to invoke the REQUIRED ControllerService RPCs, as well
       // as specific RPCs as indicated by ControllerGetCapabilities.
       CONTROLLER_SERVICE = 1;
-
-      // VOLUME_ACCESSIBILITY_CONSTRAINTS indicates that the volumes for
-      // this plugin MAY NOT be equally accessible by all nodes in the
-      // cluster. The CO MUST use the topology information returned by
-      // CreateVolumeRequest along with the topology information
-      // returned by NodeGetInfo to ensure that a given volume is
-      // accessible from a given node when scheduling workloads.
-      VOLUME_ACCESSIBILITY_CONSTRAINTS = 2;
     }
     Type type = 1;
   }
 
-  message VolumeExpansion {
+  message HealthCheck {
     enum Type {
       UNKNOWN = 0;
 
-      // ONLINE indicates that volumes may be expanded when published to
-      // a node. When a Plugin implements this capability it MUST
-      // implement either the EXPAND_VOLUME controller capability or the
-      // EXPAND_VOLUME node capability or both. When a plugin supports
-      // ONLINE volume expansion and also has the EXPAND_VOLUME
-      // controller capability then the plugin MUST support expansion of
-      // volumes currently published and available on a node. When a
-      // plugin supports ONLINE volume expansion and also has the
-      // EXPAND_VOLUME node capability then the plugin MAY support
-      // expansion of node-published volume via NodeExpandVolume.
-      //
-      // Example 1: Given a shared filesystem volume (e.g. GlusterFs),
-      //   the Plugin may set the ONLINE volume expansion capability and
-      //   implement ControllerExpandVolume but not NodeExpandVolume.
-      //
-      // Example 2: Given a block storage volume type (e.g. EBS), the
-      //   Plugin may set the ONLINE volume expansion capability and
-      //   implement both ControllerExpandVolume and NodeExpandVolume.
-      //
-      // Example 3: Given a Plugin that supports volume expansion only
-      //   upon a node, the Plugin may set the ONLINE volume
-      //   expansion capability and implement NodeExpandVolume but not
-      //   ControllerExpandVolume.
-      ONLINE = 1;
+      // HTTP indicates that driver support http healthchecks
+      HTTP = 1;
 
-      // OFFLINE indicates that volumes currently published and
-      // available on a node SHALL NOT be expanded via
-      // ControllerExpandVolume. When a plugin supports OFFLINE volume
-      // expansion it MUST implement either the EXPAND_VOLUME controller
-      // capability or both the EXPAND_VOLUME controller capability and
-      // the EXPAND_VOLUME node capability.
-      //
-      // Example 1: Given a block storage volume type (e.g. Azure Disk)
-      //   that does not support expansion of "node-attached" (i.e.
-      //   controller-published) volumes, the Plugin may indicate
-      //   OFFLINE volume expansion support and implement both
-      //   ControllerExpandVolume and NodeExpandVolume.
-      OFFLINE = 2;
+      // TCP indicates tthat driver support tcp healthchecks
+      TCP = 2;
     }
     Type type = 1;
   }
   oneof type {
     // Service that the plugin supports.
     Service service = 1;
-    VolumeExpansion volume_expansion = 2;
+    HealthCheck health_check = 2;
   }
 }
 

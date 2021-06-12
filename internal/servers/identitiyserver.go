@@ -55,23 +55,16 @@ func (ids *identityServer) GetPluginCapabilities(ctx context.Context, req *gslbi
 				},
 			},
 			{
-				Type: &gslbi.PluginCapability_Service_{
-					Service: &gslbi.PluginCapability_Service{
-						Type: gslbi.PluginCapability_Service_VOLUME_ACCESSIBILITY_CONSTRAINTS,
+				Type: &gslbi.PluginCapability_HealthCheck_{
+					HealthCheck: &gslbi.PluginCapability_HealthCheck{
+						Type: gslbi.PluginCapability_HealthCheck_HTTP,
 					},
 				},
 			},
 			{
-				Type: &gslbi.PluginCapability_VolumeExpansion_{
-					VolumeExpansion: &gslbi.PluginCapability_VolumeExpansion{
-						Type: gslbi.PluginCapability_VolumeExpansion_ONLINE,
-					},
-				},
-			},
-			{
-				Type: &gslbi.PluginCapability_VolumeExpansion_{
-					VolumeExpansion: &gslbi.PluginCapability_VolumeExpansion{
-						Type: gslbi.PluginCapability_VolumeExpansion_OFFLINE,
+				Type: &gslbi.PluginCapability_HealthCheck_{
+					HealthCheck: &gslbi.PluginCapability_HealthCheck{
+						Type: gslbi.PluginCapability_HealthCheck_TCP,
 					},
 				},
 			},
