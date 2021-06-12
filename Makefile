@@ -91,11 +91,11 @@ proto-generate:
 ##@ Build
 
 build: fmt vet proto-generate## Build manager binary.
-	go build -o bin/${NAME} main.go
+	go build -o bin/${NAME} cmd/server/main.go
 	go build -o bin/client cmd/client/main.go
 
 run: ## Run the driver on your host.
-	./bin/consul-gslb-driver start -c config.example.yaml -v=10
+	./bin/${NAME} start -c config.example.yaml -v=10
 
 docker-build: test ## Build docker image with the manager.
 	sudo podman build -t ${IMG} .
