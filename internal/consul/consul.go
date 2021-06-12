@@ -10,7 +10,7 @@ var ConsulInstance IConsul = nil
 // var cfg Config
 
 type IConsul interface {
-	CreateService(serviceID string) error
+	CreateService(node, serviceID, address, probeAddress string, intervalDuration, timeoutDuration int, headers map[string][]string) error
 	DeregService(serviceID string) error
 }
 

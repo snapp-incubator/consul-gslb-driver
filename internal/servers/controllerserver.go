@@ -2,6 +2,7 @@ package servers
 
 import (
 	"fmt"
+	"strconv"
 
 	"github.com/snapp-cab/consul-gslb-driver/internal/consul"
 	"github.com/snapp-cab/consul-gslb-driver/pkg/gslbi"
@@ -20,24 +21,59 @@ type controllerServer struct {
 func (cs *controllerServer) CreateGSLB(ctx context.Context, req *gslbi.CreateGSLBRequest) (*gslbi.CreateGSLBResponse, error) {
 	// klog.V(4).Infof("CreateGSLB: called with args %+v", protosanitizer.StripSecrets(*req))
 
-	// Volume Name
-	gslbName := req.GetName()
-
-	if len(gslbName) == 0 {
+	// Node
+	node := req.GetName()
+	if len(node) == 0 {
 		return nil, status.Error(codes.InvalidArgument, "[CreateGSLB] missing Gslb Name")
 	}
 
-	// vol, err := consul.CreateGSLB(volName, volSizeGB, volType, volAvailability, snapshotID, sourcevolID, &properties)
+	// serviceID
+	serviceID := req.GetServiceName()
+	if len(serviceID) == 0 {
+		return nil, status.Error(codes.InvalidArgument, "[CreateGSLB] missing Gslb Service Name")
+	}
 
-	// if err != nil {
-	// 	klog.Errorf("Failed to CreateGSLB: %v", err)
-	// 	return nil, status.Error(codes.Internal, fmt.Sprintf("CreateGSLB failed with error %v", err))
+	// Host
+	address := req.GetHost()
+	if len(address) == 0 {
+		return nil, status.Error(codes.InvalidArgument, "[CreateGSLB] missing Gslb Host")
+	}
 
-	// }
+	// Weight
+	weight := req.GetWeight()
+	klog.V(20).Infof("weight: %v", weight) // not implemented
 
-	klog.V(4).Infof("CreateGSLB: Successfully created volume %s", gslbName)
+	scheme := req.GetParameters()["probe_scheme"]
+	probeAddress := req.GetParameters()["probe_address"]
+	path := req.GetParameters()["probe_path"]
+	probeFullAddress := scheme + "://" + probeAddress + path
 
-	return getCreateGSLBResponse(gslbName), nil
+	timeout, err := strconv.Atoi(req.GetParameters()["probe_timeout"])
+	if err != nil {
+		return nil, status.Error(codes.InvalidArgument, "[CreateGSLB] cannot convert probe_timeout to int")
+	}
+	interval, err := strconv.Atoi(req.GetParameters()["probe_interval"])
+	if err != nil {
+		return nil, status.Error(codes.InvalidArgument, "[CreateGSLB] cannot convert probe_interval to int")
+	}
+
+	err = cs.Consul.CreateService(node, serviceID, address, probeFullAddress, interval, timeout, make(map[string][]string))
+
+	if err != nil {
+		klog.Errorf("Failed to CreateGSLB: %v", err)
+		return nil, status.Error(codes.Internal, fmt.Sprintf("CreateGSLB failed with error %v", err))
+	}
+
+	klog.V(4).Infof("CreateGSLB: Successfully created gslb %s", node)
+
+	resp := &gslbi.CreateGSLBResponse{
+		Gslb: &gslbi.Gslb{
+			GslbId: "someid", //tod
+
+		},
+	}
+
+	return resp, nil
 }
 
 func (cs *controllerServer) DeleteGSLB(ctx context.Context, req *gslbi.DeleteGSLBRequest) (*gslbi.DeleteGSLBResponse, error) {
@@ -66,14 +102,4 @@ func (cs *controllerServer) DeleteGSLB(ctx context.Context, req *gslbi.DeleteGSL
 
 func (cs *controllerServer) ControllerGetGSLB(context.Context, *gslbi.ControllerGetGSLBRequest) (*gslbi.ControllerGetGSLBResponse, error) {
 	return nil, status.Error(codes.Unimplemented, fmt.Sprintf("ControllerGetGSLB is not yet implemented"))
-}
-
-func getCreateGSLBResponse(vol string) *gslbi.CreateGSLBResponse {
-
-	resp := &gslbi.CreateGSLBResponse{
-		GSLB: vol,
-	}
-
-	return resp
-
 }

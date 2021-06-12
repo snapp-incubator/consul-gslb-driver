@@ -98,7 +98,7 @@ func (a *creater) Create(ctx context.Context, v string) (gslb string, deleted bo
 	if err != nil {
 		return "", isFinalError(err), err
 	}
-	return rsp.GSLB, false, nil
+	return rsp.Gslb.GslbId, false, nil
 }
 
 func (a *creater) Delete(ctx context.Context) error {
