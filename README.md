@@ -22,7 +22,7 @@ Gslb driver for Hashicorp Consul.
 Fill a `config.yaml` file such as the one in `config.example.yaml`. You can also set ENV vars corresponding to those values. Then run with:
 
 ```bash
-consul-gslb-driver -config=<path-to-config> <extra-flags>
+consul-gslb-driver -c=<path-to-config> <extra-flags>
 ```
 
 Note that the order will be:
@@ -32,6 +32,8 @@ Note that the order will be:
 3. config: in current dir, and then in homedir
 4. default cobra Pflag values
 5. default value in newConfig()
+
+See `consul-gslb-driver --help` for more info.
 
 ## Security
 
