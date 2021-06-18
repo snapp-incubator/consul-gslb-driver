@@ -15,7 +15,6 @@ Gslb driver for Hashicorp Consul.
 * `make rsh` spins up a temporary container based on the built image and gives you a bash inside that container.
 * `make debug` spins up a temporary container based on the build image with sleep entrypoint, and gives you a bash inside that container to debug in case container stops immediately.
 
-
 ## Usage
 
 Fill a `config.yaml` file such as the one in `config.example.yaml`. You can also set ENV vars corresponding to those values. Then run with:
