@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	"gitlab.com/snapp-cab/consul-gslb-driver/pkg/gslbi"
+	"gitlab.snapp.ir/snapp-cab/consul-gslb-driver/pkg/gslbi"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"

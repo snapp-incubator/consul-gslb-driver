@@ -3,8 +3,8 @@ package cli
 import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
-	"gitlab.com/snapp-cab/consul-gslb-driver/internal/consul"
-	"gitlab.com/snapp-cab/consul-gslb-driver/internal/servers"
+	"gitlab.snapp.ir/snapp-cab/consul-gslb-driver/internal/consul"
+	"gitlab.snapp.ir/snapp-cab/consul-gslb-driver/internal/servers"
 	"k8s.io/klog/v2"
 )
 

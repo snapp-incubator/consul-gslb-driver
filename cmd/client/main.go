@@ -8,9 +8,9 @@ import (
 	"time"
 
 	"github.com/prometheus/client_golang/prometheus/promhttp"
-	"gitlab.com/snapp-cab/consul-gslb-driver/pkg/connection"
-	"gitlab.com/snapp-cab/consul-gslb-driver/pkg/gslbi"
-	"gitlab.com/snapp-cab/consul-gslb-driver/pkg/rpc"
+	"gitlab.snapp.ir/snapp-cab/consul-gslb-driver/pkg/connection"
+	"gitlab.snapp.ir/snapp-cab/consul-gslb-driver/pkg/gslbi"
+	"gitlab.snapp.ir/snapp-cab/consul-gslb-driver/pkg/rpc"
 	"google.golang.org/grpc"
 	"k8s.io/klog/v2"
 )
