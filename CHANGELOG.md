@@ -1,3 +1,17 @@
+# [1.2.0](https://gitlab.snapp.ir/snappcloud/consul-gslb-driver/compare/v1.1.0...v1.2.0) (2021-06-18)
+
+
+### Bug Fixes
+
+* typo ([ec1c5b2](https://gitlab.snapp.ir/snappcloud/consul-gslb-driver/commit/ec1c5b2c7c3855e3153e2a8872e8186381a83dd4))
+* typo ([2bbac2e](https://gitlab.snapp.ir/snappcloud/consul-gslb-driver/commit/2bbac2e1386d7a2da23c11c69c0b50c994a1f23f))
+
+
+### Features
+
+* implement DeleteGslb logic ([de5ded8](https://gitlab.snapp.ir/snappcloud/consul-gslb-driver/commit/de5ded8efdbcb999d39c9676b484c6576303a51c))
+* implement DeleteGSLB logic ([8524821](https://gitlab.snapp.ir/snappcloud/consul-gslb-driver/commit/852482116a5aa4f18b4af1bf392f9fa9d2972824))
+
 # [1.1.0](https://gitlab.snapp.ir/snappcloud/consul-gslb-driver/compare/v1.0.0...v1.1.0) (2021-06-12)
 
 
