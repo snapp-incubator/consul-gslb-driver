@@ -1,4 +1,4 @@
-module github.com/snapp-cab/consul-gslb-driver
+module gitlab.com/snapp-cab/consul-gslb-driver
 
 go 1.16
 
