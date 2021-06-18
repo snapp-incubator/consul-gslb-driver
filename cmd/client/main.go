@@ -12,8 +12,6 @@ import (
 	"gitlab.com/snapp-cab/consul-gslb-driver/pkg/gslbi"
 	"gitlab.com/snapp-cab/consul-gslb-driver/pkg/rpc"
 	"google.golang.org/grpc"
-	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/status"
 	"k8s.io/klog/v2"
 )
 
@@ -96,7 +94,7 @@ func (a *creater) Create(ctx context.Context, v string) (gslb string, deleted bo
 
 	rsp, err := client.CreateGSLB(ctx, &req)
 	if err != nil {
-		return "", isFinalError(err), err
+		return "", connection.IsFinalError(err), err
 	}
 	return rsp.Gslb.GslbId, false, nil
 }
@@ -110,32 +108,4 @@ func (a *creater) Delete(ctx context.Context) error {
 
 	_, err := client.DeleteGSLB(ctx, &req)
 	return err
-}
-
-//// another utils
-
-// isFinished returns true if given error represents final error of an
-// operation. That means the operation has failed completely and cannot be in
-// progress.  It returns false, if the error represents some transient error
-// like timeout and the operation itself or previous call to the same
-// operation can be actually in progress.
-func isFinalError(err error) bool {
-	// Source: https://github.com/grpc/grpc/blob/master/doc/statuscodes.md
-	st, ok := status.FromError(err)
-	if !ok {
-		// This is not gRPC error. The operation must have failed before gRPC
-		// method was called, otherwise we would get gRPC error.
-		return false
-	}
-	switch st.Code() {
-	case codes.Canceled, // gRPC: Client Application cancelled the request
-		codes.DeadlineExceeded,  // gRPC: Timeout
-		codes.Unavailable,       // gRPC: Server shutting down, TCP connection broken - previous Attach() or Detach() may be still in progress.
-		codes.ResourceExhausted, // gRPC: Server temporarily out of resources - previous Attach() or Detach() may be still in progress.
-		codes.Aborted:           // GSLBI: Operation pending for gslb
-		return false
-	}
-	// All other errors mean that the operation (create/delete) either did not
-	// even start or failed. It is for sure not in progress.
-	return true
 }
