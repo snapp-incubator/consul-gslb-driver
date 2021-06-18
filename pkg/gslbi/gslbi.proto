@@ -4,7 +4,7 @@ package gslbi.v1;
 
 import "google/protobuf/wrappers.proto";
 
-option go_package = "gitlab.snapp.ir/snapp-cab/consul-gslb-driver/pkg/gslbi";
+option go_package = "gitlab.snapp.ir/snappcloud/consul-gslb-driver/pkg/gslbi";
 
 
 service Identity {

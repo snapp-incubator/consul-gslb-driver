@@ -6,7 +6,7 @@ import (
 	"strings"
 
 	"github.com/kubernetes-csi/csi-lib-utils/protosanitizer"
-	"gitlab.snapp.ir/snapp-cab/consul-gslb-driver/pkg/gslbi"
+	"gitlab.snapp.ir/snappcloud/consul-gslb-driver/pkg/gslbi"
 	"google.golang.org/grpc"
 	"k8s.io/klog/v2"
 )
