@@ -36,8 +36,9 @@ IMAGE_TAG_BASE ?= snappcloud.io/${NAME}
 # You can use it as an arg. (E.g make bundle-build BUNDLE_IMG=<some-registry>/<project-name-bundle>:<tag>)
 BUNDLE_IMG ?= $(IMAGE_TAG_BASE)-bundle:v$(VERSION)
 
+REG = registry.okd4.teh-1.snappcloud.io
 # Image URL to use all building/pushing image targets
-IMG ?= registry.okd4.teh-1.snappcloud.io/public-reg/${NAME}:latest
+IMG ?= ${REG}/public-reg/${NAME}:latest
 # Produce CRDs that work back to Kubernetes 1.11 (no version conversion)
 CRD_OPTIONS ?= "crd:trivialVersions=true,preserveUnknownFields=false"
 
@@ -97,12 +98,17 @@ build: fmt vet proto-generate## Build manager binary.
 run: ## Run the driver on your host.
 	./bin/${NAME} start -c config.example.yaml -v=10
 
+docker-login:
+	sudo podman login ${REG} -u ${REG_USER} -p ${REG_PASSWORD}
+
 docker-build: test ## Build docker image with the manager.
 	sudo podman build -t ${IMG} .
 
 docker-push: ## Push docker image with the manager.
 	sudo podman push ${IMG}
 
+redeploy: docker-build docker-login docker-push
+	oc delete po --all -n gslb-controller-system
 
 CONTROLLER_GEN = $(shell pwd)/bin/controller-gen
 controller-gen: ## Download controller-gen locally if necessary.
