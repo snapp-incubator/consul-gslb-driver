@@ -15,22 +15,25 @@ var (
 )
 
 type ConsulDriver struct {
-	name         string
-	fqVersion    string
-	endpoint     string
-	datacenter   string
-	consulConfig string
-	ids          *identityServer
-	cs           *controllerServer
+	name       string
+	fqVersion  string
+	endpoint   string
+	metricIP   string
+	metricPort int
+	metricPath string
+	ids        *identityServer
+	cs         *controllerServer
 }
 
-func NewDriver(endpoint, datacenter string) *ConsulDriver {
+func NewDriver(endpoint, metricIP, metricPath string, metricPort int) *ConsulDriver {
 
 	d := &ConsulDriver{}
 	d.name = driverName
 	d.fqVersion = Version
 	d.endpoint = endpoint
-	d.datacenter = datacenter
+	d.metricIP = metricIP
+	d.metricPort = metricPort
+	d.metricPath = metricPath
 
 	klog.Info("Driver: ", d.name)
 	klog.Info("Driver version: ", d.fqVersion)
@@ -45,7 +48,7 @@ func (d *ConsulDriver) SetupDriver(consul consul.IConsul) {
 }
 
 func (d *ConsulDriver) Run() {
-	RunServers(d.endpoint, d.ids, d.cs)
+	RunServers(d.endpoint, d.metricIP, d.metricPath, d.metricPort, d.ids, d.cs)
 }
 
 func NewIdentityServer(d *ConsulDriver) *identityServer {

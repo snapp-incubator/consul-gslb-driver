@@ -20,7 +20,7 @@ type Consul struct {
 }
 
 // CreateConsulProvider creates Consul Instance
-func CreateConsulProvider() (IConsul, error) {
+func CreateConsulProvider(consulAddress, scheme, datacenter string) (IConsul, error) {
 	// Get config from file
 	// cfg, err := GetConfigFromFiles(configFiles)
 	// if err != nil {
@@ -30,9 +30,9 @@ func CreateConsulProvider() (IConsul, error) {
 	// logcfg(cfg)
 
 	config := &consulapi.Config{
-		Address:    "consul.apps.private.okd4.teh-1.snappcloud.io",
-		Scheme:     "http",
-		Datacenter: "teh1",
+		Address:    consulAddress,
+		Scheme:     scheme,
+		Datacenter: datacenter,
 	}
 	client, err := consulapi.NewClient(config)
 	if err != nil {
@@ -49,12 +49,12 @@ func CreateConsulProvider() (IConsul, error) {
 }
 
 // GetConsul returns Consul Instance
-func GetConsul() (IConsul, error) {
+func GetConsul(consulAddress, scheme, datacenter string) (IConsul, error) {
 	if ConsulInstance != nil {
 		return ConsulInstance, nil
 	}
 	var err error
-	ConsulInstance, err = CreateConsulProvider()
+	ConsulInstance, err = CreateConsulProvider(consulAddress, scheme, datacenter)
 	if err != nil {
 		return nil, err
 	}

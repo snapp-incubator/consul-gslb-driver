@@ -2,19 +2,24 @@ package servers
 
 import (
 	"net"
+	"net/http"
 	"os"
+	"strconv"
 	"sync"
 
 	"google.golang.org/grpc"
 	"k8s.io/klog/v2"
 
+	grpc_middleware "github.com/grpc-ecosystem/go-grpc-middleware"
+	grpc_prometheus "github.com/grpc-ecosystem/go-grpc-prometheus"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"gitlab.snapp.ir/snappcloud/consul-gslb-driver/pkg/gslbi"
 )
 
 // NonBlockingGRPCServer defines Non blocking GRPC server interfaces
 type NonBlockingGRPCServer interface {
 	// Start services at the endpoint
-	Start(endpoint string, ids gslbi.IdentityServer, cs gslbi.ControllerServer)
+	Start(endpoint, metricIP, metricPath string, metricPort int, ids gslbi.IdentityServer, cs gslbi.ControllerServer)
 	// Waits for the service to stop
 	Wait()
 	// Stops the service gracefully
@@ -33,11 +38,11 @@ type nonBlockingGRPCServer struct {
 	server *grpc.Server
 }
 
-func (s *nonBlockingGRPCServer) Start(endpoint string, ids gslbi.IdentityServer, cs gslbi.ControllerServer) {
+func (s *nonBlockingGRPCServer) Start(endpoint, metricIP, metricPath string, metricPort int, ids gslbi.IdentityServer, cs gslbi.ControllerServer) {
 
 	s.wg.Add(1)
 
-	go s.serve(endpoint, ids, cs)
+	go s.serve(endpoint, metricIP, metricPath, metricPort, ids, cs)
 }
 
 func (s *nonBlockingGRPCServer) Wait() {
@@ -52,7 +57,7 @@ func (s *nonBlockingGRPCServer) ForceStop() {
 	s.server.Stop()
 }
 
-func (s *nonBlockingGRPCServer) serve(endpoint string, ids gslbi.IdentityServer, cs gslbi.ControllerServer) {
+func (s *nonBlockingGRPCServer) serve(endpoint, metricIP, metricPath string, metricPort int, ids gslbi.IdentityServer, cs gslbi.ControllerServer) {
 
 	proto, addr, err := ParseEndpoint(endpoint)
 	if err != nil {
@@ -72,7 +77,10 @@ func (s *nonBlockingGRPCServer) serve(endpoint string, ids gslbi.IdentityServer,
 	}
 
 	opts := []grpc.ServerOption{
-		grpc.UnaryInterceptor(logGRPC),
+		grpc.UnaryInterceptor(grpc_middleware.ChainUnaryServer(
+			logGRPC,
+			grpc_prometheus.UnaryServerInterceptor,
+		)),
 	}
 	server := grpc.NewServer(opts...)
 	s.server = server
@@ -82,6 +90,20 @@ func (s *nonBlockingGRPCServer) serve(endpoint string, ids gslbi.IdentityServer,
 	}
 	if cs != nil {
 		gslbi.RegisterControllerServer(server, cs)
+	}
+	grpc_prometheus.Register(server)
+	grpc_prometheus.EnableHandlingTimeHistogram()
+	mux := http.NewServeMux()
+	mux.Handle(metricPath, promhttp.Handler())
+	metricAddr := net.JoinHostPort(metricIP, strconv.Itoa(metricPort))
+	if metricAddr != "" {
+		go func() {
+			klog.Infof("Metrics listening at %q", metricAddr+metricPath)
+			err := http.ListenAndServe(metricAddr, mux)
+			if err != nil {
+				klog.Fatalf("Failed to start HTTP server at specified address (%q): %s", metricAddr, err)
+			}
+		}()
 	}
 
 	klog.Infof("Listening for connections on endpoint: %#v", listener.Addr())

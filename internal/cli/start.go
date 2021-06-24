@@ -35,9 +35,9 @@ func newStartCmd(c *Config) *cobra.Command {
 }
 
 func start(c *Config) {
-	d := servers.NewDriver(c.GRPCAddress, c.ConsulConfig.Datacenter)
-	// consul.InitConsulProvider(cloudconfig)
-	consul, err := consul.GetConsul()
+	d := servers.NewDriver(c.GRPCAddress, c.MetricServer.IP, c.MetricServer.Path, c.MetricServer.Port)
+	// Initialize consul with passed configuration
+	consul, err := consul.GetConsul(c.ConsulConfig.Address, c.ConsulConfig.Scheme, c.ConsulConfig.Datacenter)
 	if err != nil {
 		klog.Warningf("Failed to GetConsul: %v", err)
 		return

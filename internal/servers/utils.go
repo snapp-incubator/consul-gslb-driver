@@ -33,9 +33,9 @@ func logGRPC(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, h
 	return resp, err
 }
 
-func RunServers(endpoint string, ids gslbi.IdentityServer, cs gslbi.ControllerServer) {
+func RunServers(endpoint, metricIP, metricPath string, metricPort int, ids gslbi.IdentityServer, cs gslbi.ControllerServer) {
 
 	s := NewNonBlockingGRPCServer()
-	s.Start(endpoint, ids, cs)
+	s.Start(endpoint, metricIP, metricPath, metricPort, ids, cs)
 	s.Wait()
 }

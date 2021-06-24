@@ -101,5 +101,5 @@ func (cs *controllerServer) DeleteGSLB(ctx context.Context, req *gslbi.DeleteGSL
 }
 
 func (cs *controllerServer) ControllerGetGSLB(context.Context, *gslbi.ControllerGetGSLBRequest) (*gslbi.ControllerGetGSLBResponse, error) {
-	return nil, status.Error(codes.Unimplemented, fmt.Sprintf("ControllerGetGSLB is not yet implemented"))
+	return nil, status.Error(codes.Unimplemented, "ControllerGetGSLB is not yet implemented")
 }
