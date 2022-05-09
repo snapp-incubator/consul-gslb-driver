@@ -1,7 +1,7 @@
 package servers
 
 import (
-	"gitlab.snapp.ir/snappcloud/consul-gslb-driver/pkg/gslbi"
+	"github.com/snapp-incubator/consul-gslb-driver/pkg/gslbi"
 	"golang.org/x/net/context"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"

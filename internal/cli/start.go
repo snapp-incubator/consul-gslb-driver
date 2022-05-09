@@ -1,10 +1,10 @@
 package cli
 
 import (
+	"github.com/snapp-incubator/consul-gslb-driver/internal/consul"
+	"github.com/snapp-incubator/consul-gslb-driver/internal/servers"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
-	"gitlab.snapp.ir/snappcloud/consul-gslb-driver/internal/consul"
-	"gitlab.snapp.ir/snappcloud/consul-gslb-driver/internal/servers"
 	"k8s.io/klog/v2"
 )
 

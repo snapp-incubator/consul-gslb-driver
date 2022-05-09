@@ -1,7 +1,7 @@
 package main
 
 import (
-	"gitlab.snapp.ir/snappcloud/consul-gslb-driver/internal/cli"
+	"github.com/snapp-incubator/consul-gslb-driver/internal/cli"
 )
 
 func main() {

@@ -1,7 +1,7 @@
 package servers
 
 import (
-	"gitlab.snapp.ir/snappcloud/consul-gslb-driver/internal/consul"
+	"github.com/snapp-incubator/consul-gslb-driver/internal/consul"
 	"k8s.io/klog/v2"
 )
 

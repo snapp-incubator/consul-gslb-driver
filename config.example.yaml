@@ -1,5 +1,5 @@
 v: 3
-grpcAddress: "unix://Users/my/gitlab/consul-gslb-driver/socket" # --grpcAddress
+grpcAddress: "unix://Users/my/path/consul-gslb-driver/socket" # --grpcAddress
 consulConfig:
   scheme: "http"
   datacenter: "teh1"
@@ -8,4 +8,3 @@ metricServer:
   ip: "127.0.0.1"
   port: 9876 # --metrics-port
   path: "/metrics"
-

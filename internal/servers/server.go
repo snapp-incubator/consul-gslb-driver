@@ -13,7 +13,7 @@ import (
 	grpc_middleware "github.com/grpc-ecosystem/go-grpc-middleware"
 	grpc_prometheus "github.com/grpc-ecosystem/go-grpc-prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
-	"gitlab.snapp.ir/snappcloud/consul-gslb-driver/pkg/gslbi"
+	"github.com/snapp-incubator/consul-gslb-driver/pkg/gslbi"
 )
 
 // NonBlockingGRPCServer defines Non blocking GRPC server interfaces
