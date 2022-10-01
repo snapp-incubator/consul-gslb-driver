@@ -6,7 +6,7 @@ require (
 	github.com/grpc-ecosystem/go-grpc-middleware v1.3.0
 	github.com/grpc-ecosystem/go-grpc-prometheus v1.2.0
 	github.com/hashicorp/consul/api v1.1.0
-	github.com/kubernetes-csi/csi-lib-utils v0.9.1
+	github.com/kubernetes-csi/csi-lib-utils v0.11.0
 	github.com/magiconair/properties v1.8.5 // indirect
 	github.com/mitchellh/mapstructure v1.4.1 // indirect
 	github.com/pelletier/go-toml v1.9.2 // indirect
