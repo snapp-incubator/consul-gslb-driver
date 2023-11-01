@@ -14,5 +14,5 @@ require (
 	golang.org/x/net v0.12.0
 	google.golang.org/grpc v1.56.2
 	google.golang.org/protobuf v1.31.0
-	k8s.io/klog/v2 v2.100.1
+	k8s.io/klog/v2 v2.110.1
 )
